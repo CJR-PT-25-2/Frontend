@@ -3,10 +3,9 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import api from "@/lib/api";
 
 export default function CadastroPage() {
-
   const [nome, setNome] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -26,30 +25,19 @@ export default function CadastroPage() {
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
 
-  const lendoRegister = async() => {
-    try{
-      console.log("Usuário registrado:", nome, username, email);
-      setPopupAberto(true);
-
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    } catch (error) {
-      console.error("Erro ao registrar usuário:", error);
-  }
-};
   const validarSenhaSegura = (senha: string) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return regex.test(senha);
   };
   const validarNomeCompleto = (nome: string) => {
     const regex = /^[a-zA-ZÀ-ÿ\s]+$/;
     return regex.test(nome.trim());
-  }
+  };
   const validarEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,28 +48,53 @@ export default function CadastroPage() {
     setErroSenha("");
     setErroConfirmarSenha("");
     setErroCampos("");
-    
-    if(!nome || !email || !username || !senha || !confirmarSenha){
+
+    if (!nome || !email || !username || !senha || !confirmarSenha) {
       setErroCampos("Por favor, preencha todos os campos.");
       return;
     }
     if (!validarNomeCompleto(nome)) {
       setErroNome("Por favor, insira um nome completo válido.");
       return;
-    } 
+    }
     if (!validarEmail(email)) {
       setErroEmail("Por favor, insira um email válido.");
       return;
     }
     if (!validarSenhaSegura(senha)) {
-      setErroSenha("A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.");
+      setErroSenha(
+        "A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais."
+      );
       return;
     }
     if (senha !== confirmarSenha) {
       setErroConfirmarSenha("As senhas não coincidem.");
       return;
     }
-    await lendoRegister();
+
+    try {
+      await api.post("/user", {
+        name: nome,
+        email: email,
+        senha: senha,
+      });
+
+      setPopupAberto(true);
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (error: any) {
+      console.error("Erro ao registrar usuário:", error);
+      if (
+        error.response?.data?.message?.includes("P2002") ||
+        error.response?.status === 409
+      ) {
+        setErroEmail("Este email já está em uso.");
+      } else {
+        setErroCampos("Ocorreu um erro ao registrar. Tente novamente.");
+      }
+    }
   };
   return (
     <div className="flex h-screen bg-[#f4eaa8]">
@@ -166,52 +179,62 @@ export default function CadastroPage() {
         </div>
       </div>
 
-
       {/* Lado direito */}
       <div className="flex flex-col justify-center items-center w-[40%] pt-27">
-        <Image src="/images/LOGO.png" alt="Logo da Empresa" width={400} height={180} className="mb-8" />
-        <Image src="/images/Mascote5.png" alt="Personagem" width={330} height={180} />
+        <Image
+          src="/images/LOGO.png"
+          alt="Logo da Empresa"
+          width={400}
+          height={180}
+          className="mb-8"
+        />
+        <Image
+          src="/images/Mascote5.png"
+          alt="Personagem"
+          width={330}
+          height={180}
+        />
       </div>
 
-{popupAberto && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
-    <div className="bg-white p-6 rounded-lg shadow-lg text-center animate-scaleIn">
-      <h2 className="text-2xl font-bold mb-2 text-[#1C1C1C]">
-        Cadastro Bem-Sucedido!
-      </h2>
-      <p className="text-gray-700">
-        Você será redirecionado para a página de login.
-      </p>
-    </div>
-  </div>
-)}
+      {popupAberto && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center animate-scaleIn">
+            <h2 className="text-2xl font-bold mb-2 text-[#1C1C1C]">
+              Cadastro Bem-Sucedido!
+            </h2>
+            <p className="text-gray-700">
+              Você será redirecionado para a página de login.
+            </p>
+          </div>
+        </div>
+      )}
 
-<style jsx global>{`
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes scaleIn {
-    from {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  .animate-scaleIn {
-    animation: scaleIn 0.4s ease-out;
-  }
-`}</style>
-</div>
-);
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.8);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.4s ease-out;
+        }
+      `}</style>
+    </div>
+  );
 }
