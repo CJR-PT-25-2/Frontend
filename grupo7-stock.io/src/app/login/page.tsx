@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,8 @@ export default function LoginPage() {
 
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const { login } = useAuth();
+
+  const router = useRouter();
 
   const validarEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,6 +49,7 @@ export default function LoginPage() {
   };
 
   return (
+    <>
     <div className="flex h-screen bg-[#f4eaa8]">
       {/*esquerda*/}
       <div className="flex flex-col justify-center items-center w-[40%] pt-13">
@@ -107,7 +111,8 @@ export default function LoginPage() {
             {/* Botão */}
             <button
               type="submit"
-              className="w-full bg-[#D79B4E] text-white py-2 rounded-full font-semibold mt-4 hover:bg-[#c38a43] transition text-sm"
+              className="w-full bg-[#D79B4E] text-white py-2 rounded-full font-semibold mt-4 hover:bg-[#c38a43] transition text-sm courser-pointer"
+              onClick={() => router.push('/home')}
             >
               ENTRAR
             </button>
@@ -123,5 +128,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

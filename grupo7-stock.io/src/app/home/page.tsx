@@ -1,0 +1,108 @@
+"use client";
+
+import Navbar from "../components/navbar";
+import { GiFruitBowl } from "react-icons/gi";
+import { GiMedicinePills } from "react-icons/gi";
+import { GiLipstick } from "react-icons/gi";
+import { GiLargeDress } from "react-icons/gi";
+import { FaLaptop } from "react-icons/fa";
+import { IoGameControllerSharp } from "react-icons/io5";
+import { TbHorseToy } from "react-icons/tb";
+import { FaHouseChimneyWindow } from "react-icons/fa6";
+import { FaMagnifyingGlass } from "react-icons/fa6";
+import { FaAngleDown } from "react-icons/fa";
+
+
+export default function FeedPage() {
+    return (
+        <>
+        <Navbar />
+        <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
+           <div className=" text-white">
+             <h1 className="text-4xl font-bold leading-snug pl-20 pt-15 ">
+                  Do CAOS à organização,
+             </h1>
+             <h1 className="text-4xl font-bold leading-snug pl-45 pb-10">
+                em alguns cliques!
+             </h1>   
+           </div>
+           <div className=" h-full relative ml-8">
+                 <img src="/images/Mascote1.png" alt ="Mascote" className = " w-130 h-130 object-contain pr-20"/>
+           </div>
+           
+        </div> 
+        <div className=" relative z-10 bg-[#F6F3E4] h-300  pl-10 pt-10 ">
+          <div className="  text-2xl font-
+League Spartan text-black">
+            <div className=" flex items-center justify-end pr-5 pb-5">
+              <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2">
+              <input
+                type = "text"
+                placeholder="Procurar por..."
+                className=" bg-transparent outline-none w-full h-full text-black px-2
+                            placeholder: text-[#982829] 
+                            placeholder: text-sm"
+              />
+              <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
+                <FaMagnifyingGlass size={20} className="ml-2 text-[#982829]"/>
+              </button>
+
+              </div>
+
+              
+              
+
+            </div>
+            <h1> Categorias </h1>
+            <div className=" justify-center flex overflow-x-auto whitespace-nowrap p-4 space-x-10  flex-shrink-0"> {/* botoes de categorias com scroll horizontal */}
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Mercado</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Remédios</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Cosmeticos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Roupas</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">electronicos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Jogos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Brinquedos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Casa</p>
+              </button>
+            </div>
+            <h1 className="pt-5"> Produtos de Jogos </h1>
+            <h1 className="pt-5"> Produtos de Casa </h1>
+            <div className="flexbox flex items-center justify-between pr-5 ">
+             <h1 className="pt-5"> Lojas </h1>
+             <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
+              Filtros
+                <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
+                <FaAngleDown size={30} className="ml-2 text-[#982829]"/>
+              </button>
+             </div>
+            </div>
+          </div>
+
+        </div>
+        </>
+        
+    )
+}
