@@ -95,9 +95,15 @@ export default function PerfilPage() {
         {/* Botão voltar */}
         <button
           onClick={() => router.back()}
-          className="absolute left-4 sm:left-20 top-2 sm:top-35 text-white text-3xl sm:text-5xl font-semibold p-2 rounded-full hover:bg-white/10 transition"
-        >
-          &lt;
+          className="absolute left-4 sm:left-12 top-4 sm:top-[57%] p-2 rounded-full hover:bg-white/10 transition"
+          >
+          <img
+            src="/images/return.png"
+            alt="Voltar"
+            width={40}
+            height={40}
+            className="w-10 h-10 object-contain"
+          />
         </button>
         
         {/* Foto de perfil */}
@@ -126,25 +132,25 @@ export default function PerfilPage() {
             </button>
             )}
           {/* NOVO Container para o Texto: Alinhado à esquerda com margem lateral */}
-          {/* Remover mx-auto e max-w-3xl. Usar text-left e padding lateral para afastamento. */}
           <div className="text-left pl-4 sm:pl-40">
           
           {/* Adicione um padding horizontal (px-4 ou px-6) aqui se precisar de mais espaço */}
           
-          <h1 className="text-5xl text-black font-bold mb-1">
+          <h1 className="text-5xl text-black font-bold mb-1 mt-[-30]">
             {perfil.nome}
           </h1>
-          <p className="text-2xl text-black mb-1">@{perfil.username}</p>
+          <p className="text-2xl text-black mb-1 mt-10">@{perfil.username}</p>
           <p className="text-2xl text-black mb-4">
             {isMeuPerfil ? perfil.email : null} {/* Exibe email só no próprio perfil */}
           </p>
         </div>
 
-  <hr className="my-8 max-w-lg mx-auto" />
+      {/* ✅ LINHA DIVISÓRIA ADICIONADA AQUI */}
+        <hr className="my-8 max-w-4xl mx-auto border-gray-500" />
 
         {/* --- Seção da Loja (Futura) --- */}
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-6">Loja de {perfil.nome}</h2>
+          <h2 className="text-2xl font-semibold mb-6 text-black">Produtos</h2>
           {/* Se a pessoa não tem loja e É o meu perfil, mostrar botão para criar */}
           {/* {!perfil.loja && isMeuPerfil && (
             <button className="bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600 transition">
@@ -157,7 +163,7 @@ export default function PerfilPage() {
               <p>Produtos virão aqui...</p>
             </div>
           )} */}
-          <p className="text-gray-500 italic">Aqui serão exibidos os produtos da loja.</p>
+          <p className="text-gray-500 italic">Aqui serão exibidos os produtos.</p>
         </div>
       </div>
     </div>

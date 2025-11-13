@@ -1,45 +1,55 @@
 // app/perfil/editar/page.tsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation"; // Importar useParams
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import api from "@/lib/api";
 import { User } from "@/types";
-import Navbar from "@/app/components/navbar"; // Importe a Navbar
+import Navbar from "@/app/components/navbar";
 
 export default function EditarPerfilPage() {
   const router = useRouter();
   const [perfil, setPerfil] = useState<User | null>(null);
-  const [dadosForm, setDadosForm] = useState<any>(null); // Use any ou uma tipagem de DTO
+  const [dadosForm, setDadosForm] = useState<any>(null); 
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [fotoArquivo, setFotoArquivo] = useState<File | null>(null); 
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); 
 
-  // 1. Busca os dados do usuário logado
+  
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+ 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.replace("/login?redirect=/perfil/editar"); // Redireciona se não estiver logado
+      router.replace("/login?redirect=/perfil/editar"); 
       return;
     }
 
     api.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setPerfil(res.data);
-        setDadosForm(res.data); // Inicializa o formulário com os dados do usuário
+        setDadosForm(res.data); 
         setCarregando(false);
       })
       .catch(() => {
-        router.replace("/login"); // Erro ao buscar dados (token inválido)
+        router.replace("/login"); 
       });
   }, [router]);
 
-  // Função para lidar com a mudança dos campos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDadosForm({ ...dadosForm, [e.target.name]: e.target.value });
   };
 
-  // Função para salvar
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
@@ -48,19 +58,32 @@ export default function EditarPerfilPage() {
     if (!token || !perfil) return;
 
     try {
-      // Endpoint PATCH/PUT /usuarios/:id para atualizar (o mesmo que você usou antes)
-      await api.patch(`/user/${perfil.id}`, dadosForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      // Redireciona para o perfil após salvar
-      router.push(`/perfil/${perfil.id}`); 
-    } catch (err) {
-      setErro("Erro ao salvar: verifique os dados ou tente novamente.");
-    } finally {
-      setSalvando(false);
-    }
-  };
+        const formData = new FormData();
+        
+        formData.append('nome', dadosForm.nome || ''); 
+        formData.append('username', dadosForm.username || '');
+        formData.append('email', dadosForm.email || '');
+
+        if (fotoArquivo) {
+          formData.append('file', fotoArquivo); 
+        } else {
+          
+        }
+
+        await api.patch(`/user/${perfil.id}`, JSON, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        router.push(`/perfil/${perfil.id}`); 
+      } catch (err) {
+        setErro("Erro ao salvar: verifique os dados ou tente novamente.");
+        console.error(err);
+      } finally {
+        setSalvando(false);
+      }
+    };
 
   if (carregando || !dadosForm) {
     return (
@@ -71,11 +94,11 @@ export default function EditarPerfilPage() {
     );
   }
 
-  // 2. O JSX da Página
+  
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-[#f5f4eb] py-10 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#f4eaa8] py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
 
           {/* Título e Foto de Perfil */}
@@ -83,16 +106,50 @@ export default function EditarPerfilPage() {
 
           <div className="flex items-center space-x-6 mb-8">
             <img 
-              src={perfil!.fotoUrl || "/images/iconepessoa.png"} 
-              alt="Foto de perfil"
-              width={200}
-              height={200}
-              className="rounded-full border-4 border-[#f5f4eb] object-cover"
-              />
-            <button className="bg-[#d6993c] text-black py-2 px-4 rounded-lg font-semibold hover:bg-yellow-600 transition">
-              Alterar Foto
-            </button> {/* Este botão requer lógica de upload de arquivo no futuro */}
+              src={previewUrl || perfil!.fotoUrl || "/images/iconepessoa.png"} 
+              alt="Foto de perfil atual"
+              width={100}
+              height={100}
+              className="rounded-full object-cover aspect-square"
+            />
+
+            {/* 1. O Input de Arquivo (Escondido) */}
+            <input
+              type="file"
+              id="file-upload" 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+              const file = e.target.files[0];
+              setFotoArquivo(file);
+              // ✅ CRIA O URL TEMPORÁRIO para pré-visualização
+                  if (previewUrl) {
+                URL.revokeObjectURL(previewUrl); // Limpa o URL antigo, se existir
+              }
+              setPreviewUrl(URL.createObjectURL(file)); 
+    }
+              }}
+            />
+
+           
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <button
+                type="button" 
+                className="bg-[#d6993c] text-black py-2 px-4 rounded-lg font-semibold hover:bg-yellow-600 transition"
+                onClick={() => document.getElementById('file-upload')?.click()}
+              >
+                Alterar Foto
+              </button>
+            </label>
           </div>
+
+          {/* 3. Pré-visualização e Botão de Upload Imediato (Opcional) */}
+          {fotoArquivo && (
+            <div className="text-sm text-gray-700 mt-[-20px] mb-4">
+              Arquivo selecionado: **{fotoArquivo.name}**
+            </div>
+          )}
 
           {/* Formulário de Edição */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -107,7 +164,7 @@ export default function EditarPerfilPage() {
                 value={dadosForm.nome}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-gray-500"
               />
             </div>
             
@@ -121,7 +178,7 @@ export default function EditarPerfilPage() {
                 value={dadosForm.username}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-gray-500"
               />
             </div>
 
@@ -135,7 +192,7 @@ export default function EditarPerfilPage() {
                 value={dadosForm.email}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-50" // Email como somente leitura visualmente
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-50 text-gray-500" // Email como somente leitura visualmente
                 //disabled // Desabilitar a edição direta de email é mais seguro
               />
             </div>
@@ -146,7 +203,7 @@ export default function EditarPerfilPage() {
               <button
                 type="button"
                 onClick={() => router.back()} // Volta para a página anterior
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-[#982829] text-white rounded-lg hover:bg-gray-300 transition"
                 disabled={salvando}
               >
                 Cancelar
