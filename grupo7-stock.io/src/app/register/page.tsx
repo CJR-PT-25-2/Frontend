@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 
@@ -75,6 +75,7 @@ export default function CadastroPage() {
     try {
       await api.post("/user", {
         name: nome,
+        username: username,
         email: email,
         senha: senha,
       });
