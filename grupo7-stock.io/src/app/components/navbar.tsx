@@ -53,7 +53,8 @@ export default function Navbar(){
                         </button>
 
                         <button className="mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105"
-                                onClick={() => logout()}>
+                                onClick={logout}>
+                                
                             <IoMdExit size={30}/>
                         </button>
                         </div>   
