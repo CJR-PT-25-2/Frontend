@@ -1,39 +1,30 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation"; // Importar useParams
-import api from "@/lib/api"; // Assumindo que você tem essa instância do axios ou fetch wrapper
-import ModalEdicao from "../editar/page"; // Componente que vamos criar
-import { User } from "@/types/index"; // Assumindo uma tipagem básica de usuário
+import { useRouter, useParams } from "next/navigation"; 
+import api from "@/lib/api"; 
+import ModalEdicao from "../editar/page"; 
+import { User } from "@/types/index"; 
 import Navbar from "@/app/components/navbar";
-// Defina a tipagem de User em um arquivo como `src/types/index.ts`
-// export interface User {
-//   id: number;
-//   nome: string;
-//   username: string;
-//   email: string;
-//   fotoUrl: string;
-// }
+
 
 export default function PerfilPage() {
   const router = useRouter();
-  const params = useParams(); // Hook para pegar parâmetros da URL
-  const userId = params.userId as string; // O ID do perfil que estamos visitando
+  const params = useParams(); 
+  const userId = params.userId as string; 
 
-  const [perfil, setPerfil] = useState<User | null>(null); // Dados do perfil visitado
-  const [usuarioLogado, setUsuarioLogado] = useState<User | null>(null); // Se o usuário está logado, seus dados
+  const [perfil, setPerfil] = useState<User | null>(null); 
+  const [usuarioLogado, setUsuarioLogado] = useState<User | null>(null); 
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
 
-  // Variável que indica se o perfil visitado É o do usuário logado
+  
   const isMeuPerfil = usuarioLogado && perfil && usuarioLogado.id.toString() === userId;
 
-  // --- Funções de Busca ---
 
-  // 1. Buscar dados do usuário logado (quem está visitando)
   const buscarUsuarioLogado = useCallback(async (token: string) => {
     try {
-      // Endpoint para buscar 'eu' (o usuário logado)
+      
       const res = await api.get("/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -46,12 +37,11 @@ export default function PerfilPage() {
     }
   }, []);
 
-  // 2. Buscar dados do perfil que está sendo visualizado (pode ser qualquer um)
+  
   const buscarPerfil = useCallback(async () => {
   setCarregando(true);
   try {
-    // ✅ CHAMADA AGORA DEVE SER PARA A ROTA PÚBLICA
-    const res = await api.get(`/user/public/${userId}`); // Ajuste para a rota 'public'
+    const res = await api.get(`/user/public/${userId}`); 
     console.log("Dados do Perfil Recebidos:", res.data);
     setPerfil(res.data);
   } catch (error) {
@@ -62,20 +52,17 @@ export default function PerfilPage() {
   }
 }, [userId]);
 
-  // --- Efeitos ---
 
   useEffect(() => {
-    // Busca o perfil que está sendo visualizado (sempre)
+    
     buscarPerfil();
 
-    // Tenta buscar o usuário logado (se houver token)
     const token = localStorage.getItem("token");
     if (token) {
       buscarUsuarioLogado(token);
     }
   }, [buscarPerfil, buscarUsuarioLogado]);
 
-  // --- Renderização ---
 
   if (carregando) {
     return <div className="min-h-screen flex items-center justify-center">Carregando perfil...</div>;
@@ -145,7 +132,6 @@ export default function PerfilPage() {
           </p>
         </div>
 
-      {/* ✅ LINHA DIVISÓRIA ADICIONADA AQUI */}
         <hr className="my-8 max-w-4xl mx-auto border-gray-500" />
 
         {/* --- Seção da Loja (Futura) --- */}

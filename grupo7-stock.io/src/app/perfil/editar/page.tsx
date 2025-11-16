@@ -1,4 +1,3 @@
-// app/perfil/editar/page.tsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
