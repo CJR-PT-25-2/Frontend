@@ -112,7 +112,6 @@ export default function EditarPerfilPage() {
               className="rounded-full object-cover aspect-square"
             />
 
-            {/* 1. O Input de Arquivo (Escondido) */}
             <input
               type="file"
               id="file-upload" 
@@ -122,9 +121,8 @@ export default function EditarPerfilPage() {
                   if (e.target.files && e.target.files.length > 0) {
               const file = e.target.files[0];
               setFotoArquivo(file);
-              // ✅ CRIA O URL TEMPORÁRIO para pré-visualização
                   if (previewUrl) {
-                URL.revokeObjectURL(previewUrl); // Limpa o URL antigo, se existir
+                URL.revokeObjectURL(previewUrl); 
               }
               setPreviewUrl(URL.createObjectURL(file)); 
     }
@@ -143,14 +141,12 @@ export default function EditarPerfilPage() {
             </label>
           </div>
 
-          {/* 3. Pré-visualização e Botão de Upload Imediato (Opcional) */}
           {fotoArquivo && (
             <div className="text-sm text-gray-700 mt-[-20px] mb-4">
               Arquivo selecionado: **{fotoArquivo.name}**
             </div>
           )}
 
-          {/* Formulário de Edição */}
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Nome */}
@@ -181,7 +177,7 @@ export default function EditarPerfilPage() {
               />
             </div>
 
-            {/* Email (Geralmente não é editável facilmente, mas mantivemos) */}
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-black">Email</label>
               <input
@@ -201,7 +197,7 @@ export default function EditarPerfilPage() {
             <div className="pt-4 flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => router.back()} // Volta para a página anterior
+                onClick={() => router.back()} 
                 className="px-6 py-3 bg-[#982829] text-white rounded-lg hover:bg-gray-300 transition"
                 disabled={salvando}
               >

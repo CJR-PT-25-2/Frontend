@@ -106,22 +106,21 @@ export default function PerfilPage() {
       </div>
 
         {/* Área branca (infos) */}
-        <div className="pt-28 text-center relative px-4"> {/* Adicione RELATIVE aqui */}
+        <div className="pt-28 text-center relative px-4"> 
             
-            {/* Botão de Edição (Movido para aqui) */}
+            {/* Botão de Edição */}
             {isMeuPerfil && (
             <button
-                // ✅ Mude a ação para navegar para a nova página
+
                 onClick={() => router.push(`/perfil/editar`)} 
                 className="absolute right-4 sm:right-10 top-0 sm:top-6 bg-[#d6993c] text-black py-2 px-14 rounded-full font-semibold hover:bg-yellow-600 transition"
             >
                 Editar Perfil
             </button>
             )}
-          {/* NOVO Container para o Texto: Alinhado à esquerda com margem lateral */}
+          
           <div className="text-left pl-4 sm:pl-40">
           
-          {/* Adicione um padding horizontal (px-4 ou px-6) aqui se precisar de mais espaço */}
           
           <h1 className="text-5xl text-black font-bold mb-1 mt-[-30]">
             {perfil.nome}
