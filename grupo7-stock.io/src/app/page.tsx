@@ -1,140 +1,123 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import Navbar from "../app/components/navbar";
+import { GiFruitBowl } from "react-icons/gi";
+import { GiMedicinePills } from "react-icons/gi";
+import { GiLipstick } from "react-icons/gi";
+import { GiLargeDress } from "react-icons/gi";
+import { FaLaptop } from "react-icons/fa";
+import { IoGameControllerSharp } from "react-icons/io5";
+import { TbHorseToy } from "react-icons/tb";
+import { FaHouseChimneyWindow } from "react-icons/fa6";
+import { FaMagnifyingGlass } from "react-icons/fa6";
+import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import Caixa_prod from "../app/components/caixinha_produto";
 
+export default function FeedPage() {
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+    const router = useRouter();
 
-  const [erroEmail, setErroEmail] = useState("");
-  const [erroSenha, setErroSenha] = useState("");
-  const [erroCampos, setErroCampos] = useState("");
+    return (
+        <>
+        <Navbar />
+        <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
+           <div className=" text-white">
+             <h1 className="text-4xl font-bold leading-snug pl-20 pt-15 ">
+                  Do CAOS à organização,
+             </h1>
+             <h1 className="text-4xl font-bold leading-snug pl-45 pb-10">
+                em alguns cliques!
+             </h1>   
+           </div>
+           <div className=" h-full relative ml-8">
+                 <img src="/images/Mascote1.png" alt ="Mascote" className = " w-130 h-130 object-contain pr-20"/>
+           </div>
+           
+        </div> 
+        <div className=" relative z-10 bg-[#F6F3E4] h-300  pl-10 pt-10 ">
+          <div className="  text-2xl font-
+League Spartan text-black">
+            <div className=" flex items-center justify-end pr-5 pb-5">
+              <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2">
+              <input
+                type = "text"
+                placeholder="Procurar por..."
+                className=" bg-transparent outline-none w-full h-full text-black px-2
+                            placeholder: text-[#982829] 
+                            placeholder: text-sm"
+              />
+              <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
+                <FaMagnifyingGlass size={20} className="ml-2 text-[#982829]"/>
+              </button>
 
-  const [senhaVisivel, setSenhaVisivel] = useState(false);
-  const router = useRouter();
+              </div>
 
-  const validarEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
+              
+              
 
-  const fazerLogin = async () => {
-    try {
-      console.log("Usuário logado:", email);
-      router.push("/home"); 
-    } catch (error) {
-      console.error("Erro ao fazer login:", error);
-    }
-  };
+            </div>
+            <h1> Categorias </h1>
+            <div className=" justify-center flex overflow-x-auto whitespace-nowrap p-4 space-x-10  flex-shrink-0"> {/* botoes de categorias com scroll horizontal */}
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica')}>
+                <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Mercado</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Remédios</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Cosmeticos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Roupas</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Eletronicos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Jogos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Brinquedos</p>
+              </button>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+                <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]"/>
+                <p className="text-sm text-center mt-1">Casa</p>
+              </button>
+            </div>
+            <h1 className="pt-5"> Produtos de Jogos </h1>
+            <div className=" flex overflow-x-auto whitespace-nowrap p-4 space-x-8">
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+              <Caixa_prod />
+            </div>
+            <h1 className="pt-5"> Produtos de Casa </h1>
+            <div className="flexbox flex items-center justify-between pr-5 ">
+             <h1 className="pt-5"> Lojas </h1>
+             <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
+              Filtros
+                <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
+                <FaAngleDown size={30} className="ml-2 text-[#982829]"/>
+              </button>
+             </div>
+            </div>
+          </div>
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setErroEmail("");
-    setErroSenha("");
-    setErroCampos("");
-
-    if (!email || !senha) {
-      setErroCampos("Por favor, preencha todos os campos.");
-      return;
-    }
-
-    if (!validarEmail(email)) {
-      setErroEmail("Por favor, insira um email válido.");
-      return;
-    }
-
-    await fazerLogin();
-  };
-
-  return (
-    <>
-    <div className="flex h-screen bg-[#f4eaa8]">
-  {/*esquerda*/}
-  <div className="flex flex-col justify-center items-center w-[40%] pt-13">
-    <Image
-      src="/images/LOGO.png"
-      alt="Logo geral"
-      width={400}
-      height={180}
-      className="mb-8"
-    />
-    <Image
-      src="/images/moco2.png"
-      alt="boneco"
-      width={330}
-      height={180}
-    />
-  </div>
-
-  {/*espaço login*/}
-  <div className="flex flex-col justify-end items-center w-[55%] relative">
-    <div className="bg-[#1C1C1C] text-white px-12 py-16 rounded-tl-[40px] rounded-tr-[40px] shadow-lg w-[75%] h-[550px] mt-auto flex flex-col justify-center">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        BEM VINDO DE VOLTA!
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-3 mx-auto"
-      >
-        {/* Campo de Email */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 rounded-full bg-white text-black focus:outline-none text-sm"
-        />
-        {erroEmail && <p className="text-red-400 text-xs">{erroEmail}</p>}
-
-        {/* Campo de Senha */}
-        <div className="relative">
-          <input
-            type={senhaVisivel ? "text" : "password"}
-            placeholder="Senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className="w-full px-4 py-2 rounded-full bg-white text-black focus:outline-none text-sm"
-          />
-          <button
-            type="button"
-            onClick={() => setSenhaVisivel(!senhaVisivel)}
-            className="absolute right-4 top-2 text-xs text-gray-600"
-          >
-            {senhaVisivel ? "Ocultar" : "Mostrar"}
-          </button>
         </div>
-        {erroSenha && <p className="text-red-400 text-xs">{erroSenha}</p>}
-
-        {/* Mensagem de erro geral */}
-        {erroCampos && (
-          <p className="text-red-400 text-xs text-center">{erroCampos}</p>
-        )}
-
-        {/* Botão */}
-        <button
-          type="submit"
-          className="w-full bg-[#D79B4E] text-white py-2 rounded-full font-semibold mt-4 hover:bg-[#c38a43] transition text-sm courser-pointer"
-           onClick={() => router.push('/home')}
-        >
-          ENTRAR
-        </button>
-
-        {/* Link para cadastro */}
-        <p className="text-s mt-2 text-left">
-          Ainda não tem uma conta?{" "}
-          <a href="/register" className="text-[#D79B4E] hover:underline">
-            Cadastre-se
-          </a>
-        </p>
-      </form>
-    </div>
-  </div>
-</div>
-</>
-  );
+        </>
+        
+    )
 }
