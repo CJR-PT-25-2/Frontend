@@ -42,6 +42,8 @@ export default function LoginPage() {
 
     try {
       await login(email, senha);
+      router.push("/");
+
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       setErroCampos("Email ou senha inválidos. Tente novamente.");
@@ -112,7 +114,6 @@ export default function LoginPage() {
             <button
               type="submit"
               className="w-full bg-[#D79B4E] text-white py-2 rounded-full font-semibold mt-4 hover:bg-[#c38a43] transition text-sm courser-pointer"
-              onClick={() => router.push('/home')}
             >
               ENTRAR
             </button>

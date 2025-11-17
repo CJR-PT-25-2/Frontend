@@ -41,7 +41,7 @@ export default function PerfilPage() {
   const buscarPerfil = useCallback(async () => {
   setCarregando(true);
   try {
-    const res = await api.get(`/user/public/${userId}`); 
+    const res = await api.get(`/user/${userId}`); 
     console.log("Dados do Perfil Recebidos:", res.data);
     setPerfil(res.data);
   } catch (error) {

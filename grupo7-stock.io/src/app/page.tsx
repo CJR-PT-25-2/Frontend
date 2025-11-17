@@ -14,7 +14,7 @@ import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../app/components/caixinha_produto";
 
-export default function FeedPage() {
+export default function Home() {
 
     const router = useRouter();
 
