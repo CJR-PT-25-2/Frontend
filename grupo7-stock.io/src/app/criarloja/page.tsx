@@ -9,11 +9,11 @@ import { useAuth } from "@/context/AuthContext";
 const FileDropzone = ({ label }: { label: string }) => (
   
   <div 
-    className="border-2 border-dashed border-purple-400 bg-purple-50 p-6 rounded-xl text-center cursor-pointer hover:bg-purple-100 transition-colors h-full flex flex-col justify-center"
+    className="border-2 border-dashed border-cyan-400 bg-cyan-50 p-6 rounded-xl text-center cursor-pointer hover:bg-cyan-100 transition-colors h-full flex flex-col justify-center"
   >
     <div className="flex flex-col items-center space-y-2">
       <svg 
-        className="w-10 h-10 text-purple-600" 
+        className="w-10 h-10 text-[#325862]" 
         fill="none" 
         stroke="currentColor" 
         viewBox="0 0 24 24" 
@@ -21,7 +21,7 @@ const FileDropzone = ({ label }: { label: string }) => (
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.884-7.884A5 5 0 0115 6a5 5 0 014.884 4.116A4 4 0 0120 16v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z"></path>
       </svg>
-      <p className="text-sm font-medium text-purple-800">{label}</p>
+      <p className="text-sm font-medium text-[#325862]">{label}</p>
     </div>
     <input type="file" className="hidden" />
   </div>
@@ -122,9 +122,9 @@ export default function CriarLojaPage() {
                     required
                   >
                     <option value="" disabled>Selecione uma categoria</option>
-                    <option value="alimentos">Alimentos e Bebidas</option>
-                    <option value="roupas">Roupas e Moda</option>
-                    <option value="arte">Arte e Artesanato</option>
+                    <option value="alimentos">Meracado</option>
+                    <option value="entretenimento">Jogos</option>
+                    <option value="farmácia">Remédios</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -172,7 +172,7 @@ export default function CriarLojaPage() {
           <div className="pt-8 border-t border-gray-200">
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white text-xl font-semibold py-4 rounded-xl shadow-lg hover:bg-purple-700 transition"
+              className="w-full bg-[#325862] text-white text-xl font-semibold py-4 rounded-xl shadow-lg hover:bg-[#2a4a53] transition"
             >
               Adicionar Loja
             </button>

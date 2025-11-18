@@ -139,11 +139,6 @@ export default function PerfilPage() {
 
         <hr className="my-8 max-w-4xl mx-auto border-gray-500" />
 
-          <>
-          <h1 className="text-3xl text-black font-semibold mb-6">Produtos</h1>
-          </>
-          <Caixa_prod/>
-
       
         {/* --- Seção da Loja --- */}
     {/* A seção só aparece se o usuário tiver loja OU se for o próprio perfil (para mostrar o botão de criação) */}
@@ -165,25 +160,37 @@ export default function PerfilPage() {
           </div>
         )} 
         
-        {/* 2. Condição: Tem loja -> Mostrar produtos */}
         {perfil.loja && (
-          <div>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">{perfil.loja.nome || "Minha Loja"}</h3>
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">
+              {perfil.loja.nome || "Minha Loja"}
+            </h3>
             
-            {/* Aqui você vai iterar sobre os produtos de perfil.loja.produtos */}
-            {perfil.loja.produtos.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Exemplo de uso do componente ProductCard refatorado: */}
-                {/* {perfil.loja.produtos.map(p => <ProductCard key={p.id} produto={p} lojaNome={perfil.loja.nome} />)} */}
-                <p className="col-span-3 text-center text-gray-400 italic">Produtos</p>
-              </div>
-            ) : (
-              <div className="p-6 text-center border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500 italic">Nenhum produto listado nesta loja.</p>
-              </div>
+            {/* Botão de Editar Loja (Apenas se for o seu perfil) */}
+            {isMeuPerfil && (
+              <button 
+                onClick={() => router.push(`/editarloja/${perfil.loja?.id}`)} 
+                className="border border-[#325862] text-[#325862] text-sm py-2 px-4 rounded-full hover:bg-cyan-50 transition font-medium"
+              >
+                Editar Loja
+              </button>
             )}
           </div>
-        )}
+          
+          {/* Aqui você vai iterar sobre os produtos de perfil.loja.produtos */}
+          {perfil.loja.produtos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* {perfil.loja.produtos.map(p => <ProductCard key={p.id} produto={p} lojaNome={perfil.loja.nome} />)} */}
+              <p className="col-span-3 text-center text-gray-400 italic">Produtos</p>
+            </div>
+          ) : (
+            <div className="p-6 text-center border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-gray-500 italic">Nenhum produto listado nesta loja.</p>
+            </div>
+          )}
+        </div>
+      )}
       </div>
     ) : (
       <div className="max-w-3xl mx-auto mt-12">
