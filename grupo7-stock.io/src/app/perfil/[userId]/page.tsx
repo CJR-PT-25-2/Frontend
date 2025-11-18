@@ -95,13 +95,19 @@ export default function PerfilPage() {
         
         {/* Foto de perfil */}
         <div className="absolute left-[20%] bottom-0 transform -translate-x-1/2 translate-y-1/4">
-          <img 
-            src={perfil.fotoUrl || "/images/iconepessoa.png"} 
-            alt="Foto de perfil"
-            width={200}
-            height={200}
-            className="rounded-full border-4 border-[#f5f4eb] object-cover"
-            />
+          <img
+          src={
+            perfil?.foto_perfil_URL
+              ? `http://localhost:3001${perfil.foto_perfil_URL}`
+              : "/images/iconepessoa.png"
+          }
+          alt="Foto de perfil"
+          className="w-[200px] h-[200px] rounded-full border-4 border-[#f5f4eb] object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/images/iconepessoa.png"; 
+          }}
+        />
+
         </div>
       </div>
 
@@ -123,7 +129,7 @@ export default function PerfilPage() {
           
           
           <h1 className="text-5xl text-black font-bold mb-1 mt-[-30]">
-            {perfil.nome}
+            {perfil.name}
           </h1>
           <p className="text-2xl text-black mb-1 mt-10">@{perfil.username}</p>
           <p className="text-2xl text-black mb-4">
