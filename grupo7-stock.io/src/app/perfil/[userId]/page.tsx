@@ -81,7 +81,7 @@ export default function PerfilPage() {
       <div className="relative bg-black h-60">
         {/* Botão voltar */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push('/')}
           className="absolute left-4 sm:left-12 top-4 sm:top-[57%] p-2 rounded-full hover:bg-white/10 transition"
           >
           <img

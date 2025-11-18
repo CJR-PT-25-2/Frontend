@@ -200,7 +200,7 @@ export default function EditarPerfilPage() {
                 value={dadosForm.name}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-gray-700"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-700"
               />
             </div>
 
@@ -213,7 +213,7 @@ export default function EditarPerfilPage() {
                 value={dadosForm.username}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-gray-700"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-700"
               />
             </div>
 
@@ -226,8 +226,8 @@ export default function EditarPerfilPage() {
                 value={dadosForm.email}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-500"
-                disabled
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-700"
+                //disabled
               />
             </div>
 
