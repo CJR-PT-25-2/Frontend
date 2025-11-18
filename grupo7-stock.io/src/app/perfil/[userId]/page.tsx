@@ -6,7 +6,7 @@ import api from "@/lib/api";
 import ModalEdicao from "../editar/page"; 
 import { User } from "@/types/index"; 
 import Navbar from "@/app/components/navbar";
-
+import Caixa_prod from "@/app/components/caixinha_produto";
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -95,13 +95,19 @@ export default function PerfilPage() {
         
         {/* Foto de perfil */}
         <div className="absolute left-[20%] bottom-0 transform -translate-x-1/2 translate-y-1/4">
-          <img 
-            src={perfil.fotoUrl || "/images/iconepessoa.png"} 
-            alt="Foto de perfil"
-            width={200}
-            height={200}
-            className="rounded-full border-4 border-[#f5f4eb] object-cover"
-            />
+          <img
+          src={
+            perfil?.foto_perfil_URL
+              ? `http://localhost:3001${perfil.foto_perfil_URL}`
+              : "/images/iconepessoa.png"
+          }
+          alt="Foto de perfil"
+          className="w-[200px] h-[200px] rounded-full border-4 border-[#f5f4eb] object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "/images/iconepessoa.png"; 
+          }}
+        />
+
         </div>
       </div>
 
@@ -123,7 +129,7 @@ export default function PerfilPage() {
           
           
           <h1 className="text-5xl text-black font-bold mb-1 mt-[-30]">
-            {perfil.nome}
+            {perfil.name}
           </h1>
           <p className="text-2xl text-black mb-1 mt-10">@{perfil.username}</p>
           <p className="text-2xl text-black mb-4">
@@ -133,23 +139,64 @@ export default function PerfilPage() {
 
         <hr className="my-8 max-w-4xl mx-auto border-gray-500" />
 
-        {/* --- Seção da Loja (Futura) --- */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-6 text-black">Produtos</h2>
-          {/* Se a pessoa não tem loja e É o meu perfil, mostrar botão para criar */}
-          {/* {!perfil.loja && isMeuPerfil && (
-            <button className="bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600 transition">
+      
+        {/* --- Seção da Loja --- */}
+    {/* A seção só aparece se o usuário tiver loja OU se for o próprio perfil (para mostrar o botão de criação) */}
+    {perfil.loja || isMeuPerfil ? (
+      <div className="max-w-3xl mx-auto mt-12">
+       
+        {/* 1. Condição: Não tem loja E É o meu perfil -> Mostrar botão para criar */}
+        {!perfil.loja && isMeuPerfil && (
+          <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl flex justify-between items-center shadow-sm">
+            <p className="text-gray-700">Você ainda não tem uma loja. Crie agora para começar a vender!</p>
+            
+            {/* Botão de Criar Loja: Maior e Amarelo */}
+            <button 
+            onClick={() => router.push(`/criarloja`)} 
+            className="bg-[#d6993c] text-black font-semibold text-lg py-3 px-8 rounded-full 
+                              hover:bg-yellow-500 transition shadow-lg">
               Criar Minha Loja
             </button>
-          )} */}
-          {/* Se tem loja, mostrar produtos */}
-          {/* {perfil.loja && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <p>Produtos virão aqui...</p>
+          </div>
+        )} 
+        
+        {perfil.loja && (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">
+              {perfil.loja.nome || "Minha Loja"}
+            </h3>
+            
+            {/* Botão de Editar Loja (Apenas se for o seu perfil) */}
+            {isMeuPerfil && (
+              <button 
+                onClick={() => router.push(`/editarloja/${perfil.loja?.id}`)} 
+                className="border border-[#325862] text-[#325862] text-sm py-2 px-4 rounded-full hover:bg-cyan-50 transition font-medium"
+              >
+                Editar Loja
+              </button>
+            )}
+          </div>
+          
+          {/* Aqui você vai iterar sobre os produtos de perfil.loja.produtos */}
+          {perfil.loja.produtos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* {perfil.loja.produtos.map(p => <ProductCard key={p.id} produto={p} lojaNome={perfil.loja.nome} />)} */}
+              <p className="col-span-3 text-center text-gray-400 italic">Produtos</p>
             </div>
-          )} */}
-          <p className="text-gray-500 italic">Aqui serão exibidos os produtos.</p>
+          ) : (
+            <div className="p-6 text-center border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-gray-500 italic">Nenhum produto listado nesta loja.</p>
+            </div>
+          )}
         </div>
+      )}
+      </div>
+    ) : (
+      <div className="max-w-3xl mx-auto mt-12">
+        <p className="text-gray-500 italic">O usuário não possui uma loja configurada.</p>
+      </div>
+    )}
       </div>
     </div>
     </>
