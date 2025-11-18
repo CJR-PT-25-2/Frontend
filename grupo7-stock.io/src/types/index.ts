@@ -1,12 +1,36 @@
+export interface Imagens_produto {
+  id: number;
+  ordem: number;
+  Img_URL: string; 
+  produto_id: number;
+  categoria_id: number;
+}
+
+export interface Produto {
+  id: number;
+  loja_id: number;
+  categoria_id: number;
+  nome: string;
+  descrição: string; 
+  preco: number;
+  estoque: number;
+  imagens: Imagens_produto[]; 
+}
+
+export interface Loja {
+  id: number;
+  nome: string;
+  descricao?: string;
+  donoId: number;
+  banner_url?: string;
+  sticker_url?: string;
+  produtos: Produto[];
+}
 export interface User {
-  id: string | number; // Use 'string' se for um UUID ou 'number' se for um ID sequencial.
+  id: string | number; 
   name: string;
   username: string;
   email: string;
-  //fotoUrl?: string; 
-  foto_perfil_URL?: string// O ponto de interrogação indica que o campo é opcional.
-  // Adicione aqui outros campos relevantes para o seu perfil.
-  // Exemplo:
-  // bio?: string;
-  // dataRegistro: Date;
+  foto_perfil_URL?: string;
+  loja?: Loja; 
 }
