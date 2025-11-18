@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../app/components/navbar";
+import {useState, useEffect} from "react";
 import { GiFruitBowl } from "react-icons/gi";
 import { GiMedicinePills } from "react-icons/gi";
 import { GiLipstick } from "react-icons/gi";
@@ -13,11 +14,76 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../app/components/caixinha_produto";
+import api from "@/lib/api";
+
+type ProdutoParacard = {
+    id: number;
+    nome: string;
+    preco: number;
+    Imagems_produto_URL: string;
+    estoque: number;
+    sticker_url ?: string;
+
+}
+
+const Categoria_id_Casa = 1;
+const Categoria_id_Jogos = 2;
 
 export default function Home() {
 
     const router = useRouter();
+    const [produtosCasa, setProdutosCasa] = useState<ProdutoParacard[]>([]);
+    const [produtosJogos, setProdutosJogos] = useState<ProdutoParacard[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
+    const fetchProdutosPorCategoriaPai = async (id: number, setFunction: React.Dispatch<React.SetStateAction<ProdutoParacard[]>>, categoriaNome: string) => {
+        try {
+          const response = await api.get(`/produto/categoria_pai/${id}`); 
+            setFunction(response.data);
+        } catch (err) {
+          console.error(`Erro ao buscar produtos da categoria ${categoriaNome}:`, err);
+          setError(`Erro ao buscar produtos da categoria ${categoriaNome}`);
+        }
+      };
+
+    useEffect(() => {
+        const loadprodutos = async () => {
+            setLoading(true);
+            setLoading(false);
+            await fetchProdutosPorCategoriaPai(Categoria_id_Casa, setProdutosCasa, "Casa");
+            await fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "Jogos");
+          setLoading(false);
+        };
+        loadprodutos();
+    } , []);
+
+    const renderProdutos = (titulo: string, produtos: ProdutoParacard[]) => (
+        <div className="pt-5">
+            <h1 className="text-2xl font-bold mb-4">{titulo}</h1>
+            {loading ? (
+                <p>Carregando produtos...</p>
+            ) : produtos.length === 0 ? (
+                <p>Nenhum produto de {titulo} encontrado.</p>
+            ) : (
+                <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-4">
+                    {produtos.map((produto) => (
+                        <Caixa_prod 
+                            key={produto.id}
+                            id={produto.id}
+                            nome={produto.nome}
+                            preco={produto.preco}     
+                            imagemUrl={produto.Imagems_produto_URL} 
+                            quantidade ={produto.estoque}
+                            // Adicionamos LojaURL usando o sticker_url se existir
+                            lojaURL={produto.sticker_url || undefined} 
+                            disponivel={produto.estoque > 0}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
     return (
         <>
         <Navbar />
@@ -92,19 +158,8 @@ League Spartan text-black">
                 <p className="text-sm text-center mt-1">Casa</p>
               </button>
             </div>
-            <h1 className="pt-5"> Produtos de Jogos </h1>
-            <div className=" flex overflow-x-auto whitespace-nowrap p-4 space-x-8">
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-              <Caixa_prod />
-            </div>
-            <h1 className="pt-5"> Produtos de Casa </h1>
+            {renderProdutos("Produtos de Jogos", produtosJogos)}
+            {renderProdutos("Produtos de Casa", produtosCasa)}
             <div className="flexbox flex items-center justify-between pr-5 ">
              <h1 className="pt-5"> Lojas </h1>
              <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
