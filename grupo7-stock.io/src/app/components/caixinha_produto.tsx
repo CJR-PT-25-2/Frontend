@@ -24,9 +24,9 @@ export default function Caixa_prod({
     const precoValido = typeof preco === 'number' ? preco : 0; //Caso preco n seja um numero, atribui 0
     const precoFormatado = precoValido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const placeholderProduto = "/images/placeholder_produto.png"; 
-    const placeholderLoja = "/images/placeholder_loja.png"; 
+    const placeholderLoja = "/images/placeholder_loja.png";
     const finalImageUrl = imagemUrl && imagemUrl.trim() !== '' ? imagemUrl : placeholderProduto;
-    const finalLojaUrl = lojaURL && lojaURL.trim() !== '' ? lojaURL : placeholderLoja;
+    const finalLojaurl = lojaURL && lojaURL.trim() !== '' ? lojaURL : placeholderLoja;
 
     return (
         <div className=" bg-white w-50 h-75 rounded-2xl shadow-lg p-4 flex flex-col flex-shrink-0 cursor-pointer hover:scale-105 ">
@@ -38,9 +38,14 @@ export default function Caixa_prod({
                     <span className="text-gray-500">Imagem não disponível</span>
                 </div>
                 )}
-                <img src={finalLojaUrl} alt="logo" className="w-15 h-15 absolute
+                { finalLojaurl &&
+                <div className="rounded-full overflow-hidden w-15 h-15 absolute top-0 right-0 z-10">
+                    <img src={finalLojaurl} alt="logo" className="w-15 h-15 absolute
                                                                       top-0 right-0
-                                                                      z-10"/>                                           
+                                                                      z-10"/>  
+                </div>
+                  
+    }                                      
             </div>
             
             <div className="text-black  font-semibold text-lg mb-2 items-start">
@@ -50,11 +55,11 @@ export default function Caixa_prod({
                 {precoFormatado}
         </div>
         {disponivel ? (
-            <div className="text-green-600 font-semibold">
+            <div className="text-green-600 text-xl font-semibold">
                 Disponível
             </div>
         ) : (
-            <div className="text-red-600 font-semibold">
+            <div className="text-red-600 text-xl font-semibold">
                 Indisponível
             </div>
         )}

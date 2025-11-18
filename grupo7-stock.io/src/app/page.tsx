@@ -14,7 +14,9 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../app/components/caixinha_produto";
+import Sticker_loja from "./components/sticker_loja";
 import api from "@/lib/api";
+
 
 type ProdutoParacard = {
     id: number;
@@ -22,8 +24,15 @@ type ProdutoParacard = {
     preco: number;
     Imagems_produto_URL: string;
     estoque: number;
-    sticker_url ?: string;
+    Loja: {
+      sticker_url : string;
+    } | null;
+}
 
+type LojaParacard = {
+    id: number;
+    nome: String;
+    sticker_url: string;
 }
 
 const Categoria_id_Casa = 1;
@@ -34,6 +43,7 @@ export default function Home() {
     const router = useRouter();
     const [produtosCasa, setProdutosCasa] = useState<ProdutoParacard[]>([]);
     const [produtosJogos, setProdutosJogos] = useState<ProdutoParacard[]>([]);
+    const [Lojas, setLojas] = useState<LojaParacard[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +54,16 @@ export default function Home() {
         } catch (err) {
           console.error(`Erro ao buscar produtos da categoria ${categoriaNome}:`, err);
           setError(`Erro ao buscar produtos da categoria ${categoriaNome}`);
+        }
+      };
+
+    const fetchLojas = async () => {
+        try {
+          const response = await api.get('/loja');
+            setLojas(response.data);
+        } catch (err) {
+          console.error('Erro ao buscar lojas:', err);
+          setError('Erro ao buscar lojas');
         }
       };
 
@@ -58,9 +78,20 @@ export default function Home() {
         loadprodutos();
     } , []);
 
+    useEffect(() => {
+        const loadLojas = async () => {
+            setLoading(true);
+            await fetchLojas();
+            setLoading(false);
+            await fetchLojas();
+            setLoading(false);
+        };
+        loadLojas();
+    } , []);
+
     const renderProdutos = (titulo: string, produtos: ProdutoParacard[]) => (
         <div className="pt-5">
-            <h1 className="text-2xl font-bold mb-4">{titulo}</h1>
+            <h1 className="text-xl font-bold mb-4">{titulo}</h1>
             {loading ? (
                 <p>Carregando produtos...</p>
             ) : produtos.length === 0 ? (
@@ -76,7 +107,7 @@ export default function Home() {
                             imagemUrl={produto.Imagems_produto_URL} 
                             quantidade ={produto.estoque}
                             // Adicionamos LojaURL usando o sticker_url se existir
-                            lojaURL={produto.sticker_url || undefined} 
+                            lojaURL={produto.Loja?.sticker_url} 
                             disponivel={produto.estoque > 0}
                         />
                     ))}
@@ -84,6 +115,29 @@ export default function Home() {
             )}
         </div>
     );
+    
+      const renderLojas = () => (
+            loading? (
+              <p>Carregando lojas...</p>
+            ) : Lojas.length === 0 ? (
+              <p>Nenhuma loja encontrada.</p>
+            ) : (
+              <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
+                  {Lojas.map((loja) => (
+                      <Sticker_loja 
+                          key={loja.id}
+                          id = {loja.id}
+                          nome = {String(loja.nome)}
+                          descricao = {""}
+                          sticker_URL={loja.sticker_url}
+                    />    
+                ))}
+              </div>
+              )
+            );
+            
+        
+
     return (
         <>
         <Navbar />
@@ -101,7 +155,7 @@ export default function Home() {
            </div>
            
         </div> 
-        <div className=" relative z-10 bg-[#F6F3E4] h-300  pl-10 pt-10 ">
+        <div className=" relative z-10 bg-[#F6F3E4] h-350  pl-10 pt-10 ">
           <div className="  text-2xl font-
 League Spartan text-black">
             <div className=" flex items-center justify-end pr-5 pb-5">
@@ -160,15 +214,21 @@ League Spartan text-black">
             </div>
             {renderProdutos("Produtos de Jogos", produtosJogos)}
             {renderProdutos("Produtos de Casa", produtosCasa)}
-            <div className="flexbox flex items-center justify-between pr-5 ">
+            <div className=" items-center justify-between pr-5 pt-10">
+            <div className=" flex justify-between items-center pb-4">
              <h1 className="pt-5"> Lojas </h1>
-             <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
-              Filtros
+             <div className=" bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
+              <div className="flex">
+                Filtros
                 <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
                 <FaAngleDown size={30} className="ml-2 text-[#982829]"/>
               </button>
-             </div>
-            </div>
+              </div>
+           
+              </div>
+              </div>
+              </div>
+            {renderLojas()}
           </div>
 
         </div>
