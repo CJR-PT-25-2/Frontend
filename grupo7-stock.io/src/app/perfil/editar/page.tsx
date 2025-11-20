@@ -84,7 +84,7 @@ export default function EditarPerfilPage() {
       // 2. Enviar foto se houver
       if (fotoArquivo) {
         const formData = new FormData();
-        formData.append("file", fotoArquivo); // 👈 CORRETO AGORA
+        formData.append("file", fotoArquivo); 
 
         const upload = await api.post(
           `/user/${perfil.id}/avatar`,
