@@ -291,7 +291,7 @@ export default function EditarProdutoClient() {
           <h1 className="text-3xl font-bold text-black">Editar Produto: {nome}</h1>
 
           <button
-            onClick={() => router.push(`/produto/${id}`)}
+            onClick={() => router.push(`/perfil/${user?.id}`)}
             className="text-gray-500 hover:text-gray-900 transition"
           >
             <svg
