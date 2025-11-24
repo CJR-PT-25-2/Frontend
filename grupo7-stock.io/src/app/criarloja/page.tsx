@@ -1,8 +1,17 @@
-// src/app/criarloja/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+const categoriaMap: Record<string, number> = {
+  mercado: 1,
+  farmacia: 2,
+  brinquedo: 3,
+  beleza: 4,
+  moda: 5,
+  casa: 6,
+  eletronicos: 7,
+  jogos: 8,
+};
 
 interface FileDropzoneProps {
   label: string;
@@ -69,7 +78,7 @@ export default function CriarLojaPage() {
   const [categoria, setCategoria] = useState("");
   const [descricaoLoja, setDescricaoLoja] = useState("");
 
-  // arquivos
+  
   const [filePerfil, setFilePerfil] = useState<File | null>(null);
   const [fileSticker, setFileSticker] = useState<File | null>(null);
   const [fileBanner, setFileBanner] = useState<File | null>(null);
@@ -78,14 +87,14 @@ export default function CriarLojaPage() {
   const [previewBanner, setPreviewBanner] = useState<string | null>(null);
 
 
-  // verificar login
+  
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login");
     }
   }, [loading, isAuthenticated, router]);
 
-  // enviar para API
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -93,12 +102,19 @@ export default function CriarLojaPage() {
       alert("Erro: Usuário não identificado!");
       return;
     }
-
+    
     try {
       const form = new FormData();
+      const categoriaId = categoriaMap[categoria];
+
+      if (!categoriaId) {
+        alert("Selecione uma categoria válida!");
+        return;
+      }
+
+      form.append("categoriaId", String(categoriaId));
       form.append("nome", nomeLoja);
       form.append("descricao", descricaoLoja);
-      //form.append("categoria", categoria);
       form.append("donoId", String(Number(user.id)));
 
       if (filePerfil) form.append("fotoPerfil", filePerfil);
@@ -191,12 +207,15 @@ export default function CriarLojaPage() {
                   className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-purple-500 text-lg text-gray-800 bg-white cursor-pointer"
                   required
                 >
-                  <option value="" disabled>
-                    Selecione uma categoria
-                  </option>
-                  <option value="alimentos">Mercado</option>
-                  <option value="entretenimento">Jogos</option>
-                  <option value="farmácia">Remédios</option>
+                  <option value="" disabled>Selecione uma categoria</option>
+                  <option value="mercado">Mercado</option>
+                  <option value="farmacia">Farmácia</option>
+                  <option value="brinquedo">Brinquedo</option>
+                  <option value="beleza">Beleza</option>
+                  <option value="moda">Moda</option>
+                  <option value="casa">Casa</option>
+                  <option value="eletronicos">Eletrônicos</option>
+                  <option value="jogos">Jogos</option>
                 </select>
               </div>
 

@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation"; 
+import { useAuth } from "@/context/AuthContext";
 
 const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
   Mercado: [
-    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açougue", "Mercearia",
+    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açogue", "Mercearia",
   ],
   Farmacia: [
     "Medicamentos", "Higiene", "Cosméticos", 
@@ -26,12 +27,15 @@ const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
     "Celulares", "Notebooks", "TVs", "Acessórios",
   ],
   Jogos: [
-    "Consoles e Eletrônicos", "Tabuleiro",
+    "Eletrônicos", "Tabuleiro",
   ],
 };
 
-
-
+const normalizeKey = (name: string) => 
+    name
+        .normalize("NFD") 
+        .replace(/[\u0300-\u036f]/g, "") 
+        .replace(/\s/g, '');
 
 const FileDropzone = ({
   label,
@@ -105,24 +109,31 @@ const FileDropzone = ({
 
 
 
-export default function NovoProdutoClient() {
+export default function EditarProdutoClient() {
   const params = useParams();
-  
   const id = typeof params.id === 'string' ? params.id : null; 
   const router = useRouter();
+  const { user } = useAuth();
+  
+  const [lojaId, setLojaId] = useState<string | null>(null);
 
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [subcategoriaNome, setSubcategoriaNome] = useState(""); 
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
+  
+ 
   const [files, setFiles] = useState<Array<File | null>>([null, null, null, null]);
   const [previews, setPreviews] = useState<Array<string | null>>([null, null, null, null]);
+
+  
   const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<string[]>([]);
   const [categoriaPaiNome, setCategoriaPaiNome] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  
   const handleFileSelect = (index: number, newFile: File | null) => {
     const newFiles = [...files];
     newFiles[index] = newFile;
@@ -132,45 +143,63 @@ export default function NovoProdutoClient() {
     newPreviews[index] = newFile ? URL.createObjectURL(newFile) : null;
     setPreviews(newPreviews);
   };
-
   
+ 
   useEffect(() => {
     if (!id) return;
     
     async function fetchData() {
       try {
-        const lojaRes = await fetch(`http://localhost:3001/loja/${id}`);
-        if (!lojaRes.ok) {
-            throw new Error("Loja não encontrada ou erro na API.");
+        
+        const produtoRes = await fetch(`http://localhost:3001/produto/${id}`);
+        if (!produtoRes.ok) {
+            throw new Error("Produto não encontrado ou erro na API.");
         }
-const lojaData = await lojaRes.json();
-let categoriaNomeAPI = lojaData.categoriaNome;
+        const produtoData = await produtoRes.json();
+        
+        
+        setNome(produtoData.nome);
+        setPreco(String(produtoData.preco));
+        setEstoque(String(produtoData.estoque));
+        setDescricao(produtoData.descricao);
+        setSubcategoriaNome(produtoData.Categoria.nome);
+        setLojaId(String(produtoData.Loja.id));
+        
+        
+        const currentUrls = [
+            produtoData.imagem1_url,
+            produtoData.imagem2_url,
+            produtoData.imagem3_url,
+            produtoData.imagem4_url,
+        ];
+        
+        setPreviews(currentUrls.map(url => url ? `http://localhost:3001${url}` : null));
+        
+        
+        const lojaRes = await fetch(`http://localhost:3001/loja/${produtoData.Loja.id}`);
+        const lojaData = await lojaRes.json();
+        const categoriaNomeOriginal = lojaData.categoriaNome; // Ex: "Farmácia"
 
-if (!categoriaNomeAPI) {
-    throw new Error("Categoria principal da loja não definida. Verifique o findOne no LojaService.");
-}
+        if (!categoriaNomeOriginal) {
+            throw new Error("Categoria principal da loja não definida.");
+        }
+        
+        const categoriaChaveNormalizada = normalizeKey(categoriaNomeOriginal);
 
-
-const normalizeName = (name: string) => 
-    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, ''); 
-
-
-const categoriaChave = normalizeName(categoriaNomeAPI); 
-const nomeExibicao = categoriaNomeAPI;
-
-const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS_SUBCATEGORIAS];
+        const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChaveNormalizada as keyof typeof CATEGORIAS_SUBCATEGORIAS];
         
         if (lista) {
-        setSubcategoriasDisponiveis(lista);
-        setCategoriaPaiNome(nomeExibicao); 
-      }
-        else {
-          setError(`Nenhuma subcategoria mapeada para a categoria: ${categoriaNomeAPI}`);
+          setSubcategoriasDisponiveis(lista);
+         
+          setCategoriaPaiNome(categoriaChaveNormalizada); 
+        } else {
+          
+          setError(`Nenhuma subcategoria mapeada para a categoria: ${categoriaChaveNormalizada}`);
         }
         
       } catch (err: any) {
         console.error("Erro no carregamento:", err);
-        setError(err.message || "Não foi possível carregar as opções de subcategoria.");
+        setError(err.message || "Não foi possível carregar os dados para edição.");
       } finally {
         setLoading(false);
       }
@@ -178,66 +207,66 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
 
     fetchData();
   }, [id]);
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!subcategoriaNome) {
-        alert("Por favor, selecione uma subcategoria.");
+    if (!subcategoriaNome || !categoriaPaiNome) {
+        alert("Dados de categoria incompletos.");
         return;
     }
-    if (!categoriaPaiNome) {
-        alert("Erro interno: Categoria da loja não identificada.");
-        return;
-    }
-    if (!files[0]) {
-        alert("A foto principal (Foto 1) é obrigatória.");
-        return;
-    }
-
-
+    
+   
     const form = new FormData();
     form.append("nome", nome);
     form.append("preco", preco); 
     form.append("estoque", estoque);
-    form.append("loja_id", String(id)); 
     form.append("descricao", descricao);
+    
     
     form.append("subcategoria", subcategoriaNome); 
     form.append("categoriaPai", categoriaPaiNome);
     
+    
     files.forEach((file, index) => {
         if (file) {
+            
             form.append(`imagem${index + 1}`, file);
+        } else if (previews[index] === null) {
+            
+            form.append(`remove_imagem${index + 1}`, 'true'); 
         }
     });
 
     try {
-        const res = await fetch(`http://localhost:3001/produto`, {
-            method: "POST",
+        
+        const res = await fetch(`http://localhost:3001/produto/${id}`, {
+            method: "PATCH",
             body: form,
         });
 
         if (!res.ok) {
             const text = await res.text();
             console.error("ERRO BRUTO:", text);
-            alert("Erro ao criar produto! Verifique o console.");
+            alert("Erro ao editar produto! Verifique o console.");
             return;
         }
 
-        alert("Produto criado com sucesso!");
-        router.push(`/loja/${id}`);
+        alert("Produto editado com sucesso!");
+       
+        router.push(`/perfil/${user?.id}`); 
     } catch (error) {
         console.error(error);
         alert("Erro ao conectar ao servidor.");
     }
   };
 
+
   
   if (loading || !id) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl text-gray-500">Carregando categorias da loja...</h1>
+        <h1 className="text-xl text-gray-500">Carregando dados do produto...</h1>
       </div>
     );
   }
@@ -245,7 +274,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="p-8 bg-white rounded-lg shadow-xl text-center">
-            <h1 className="text-2xl text-red-600 mb-4">Erro de Carregamento</h1>
+            <h1 className="text-2xl text-red-600 mb-4">❌ Erro de Carregamento</h1>
             <p className="text-gray-700">{error}</p>
         </div>
       </div>
@@ -259,10 +288,10 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
         
         {/* CABEÇALHO */}
         <div className="flex justify-between items-center mb-10 border-b pb-4">
-          <h1 className="text-3xl font-bold text-black">Adicionar Novo Produto</h1>
+          <h1 className="text-3xl font-bold text-black">Editar Produto: {nome}</h1>
 
           <button
-            onClick={() => router.push(`/loja/${id}`)}
+            onClick={() => router.push(`/produto/${id}`)}
             className="text-gray-500 hover:text-gray-900 transition"
           >
             <svg
@@ -300,7 +329,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                   placeholder="Ex: Tênis Runner Pro"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
+                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
                   required
                 />
               </div>
@@ -313,7 +342,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                 <select
                   value={subcategoriaNome}
                   onChange={(e) => setSubcategoriaNome(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-green-500 text-lg text-gray-800 bg-white cursor-pointer"
+                  className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 bg-white cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione a Subcategoria</option>
@@ -325,7 +354,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                 </select>
               </div>
 
-              {/* Preço e Estoque em GRID */}
+              {/* Preço e Estoque */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Preço */}
                 <div>
@@ -337,7 +366,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                         placeholder="0.00"
                         value={preco}
                         onChange={(e) => setPreco(e.target.value)}
-                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
+                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
                         required
                     />
                 </div>
@@ -352,7 +381,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                         placeholder="Quantidade"
                         value={estoque}
                         onChange={(e) => setEstoque(e.target.value)}
-                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
+                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
                         required
                     />
                 </div>
@@ -369,7 +398,7 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                   placeholder="Detalhes, materiais, usos, etc."
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800 resize-none"
+                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 resize-none"
                 />
               </div>
 
@@ -381,7 +410,6 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
                 Mídia e Imagens (Máx. 4)
               </h2>
 
-              {/* Mapeamento para exibir 4 dropzones */}
               <div className="grid grid-cols-2 gap-4">
                 {Array(4).fill(0).map((_, index) => (
                   <FileDropzone
@@ -395,13 +423,12 @@ const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS
             </div>
           </div>
 
-          {/* Botão de Criação */}
           <div className="pt-8 border-t border-gray-200">
             <button
               type="submit"
-              className="w-full bg-green-600 text-white text-xl font-semibold py-4 rounded-xl shadow-lg hover:bg-green-700 transition"
+              className="w-full bg-blue-600 text-white text-xl font-semibold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition"
             >
-              Criar Produto
+              Salvar Alterações
             </button>
           </div>
         </form>
