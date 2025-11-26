@@ -26,17 +26,20 @@ type ProdutoParacard = {
     estoque: number;
     Loja: {
       sticker_url : string;
-    } | null;
+    }
 }
 
 type LojaParacard = {
     id: number;
     nome: String;
     sticker_url: string;
+    categoria: {
+        nome: string
+    } | null
 }
 
 const Categoria_id_Casa = 1;
-const Categoria_id_Jogos = 2;
+const Categoria_id_Jogos = 38; 
 
 export default function Home() {
 
@@ -70,9 +73,8 @@ export default function Home() {
     useEffect(() => {
         const loadprodutos = async () => {
             setLoading(true);
-            setLoading(false);
             await fetchProdutosPorCategoriaPai(Categoria_id_Casa, setProdutosCasa, "Casa");
-            await fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "Jogos");
+            await fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "jogos");
           setLoading(false);
         };
         loadprodutos();
@@ -124,10 +126,11 @@ export default function Home() {
             ) : (
               <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
                   {Lojas.map((loja) => (
-                      <Sticker_loja 
+                      <Sticker_loja  
                           key={loja.id}
                           id = {loja.id}
                           nome = {String(loja.nome)}
+                          categoria= {String(loja.categoria?.nome || "")}
                           descricao = {""}
                           sticker_URL={loja.sticker_url}
                     />    
@@ -155,7 +158,7 @@ export default function Home() {
            </div>
            
         </div> 
-        <div className=" relative z-10 bg-[#F6F3E4] h-350  pl-10 pt-10 ">
+        <div className=" relative z-10 bg-[#F6F3E4] h-full  pl-10 pt-10 ">
           <div className="  text-2xl font-
 League Spartan text-black">
             <div className=" flex items-center justify-end pr-5 pb-5">
