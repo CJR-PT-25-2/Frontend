@@ -1,0 +1,245 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import Navbar from "@/app/components/navbar";
+
+interface Loja {
+  id: number;
+  nome: string;
+  descricao: string;
+  perfil_url: string | null;
+  banner_url: string | null;
+  categoria: { nome: string }; 
+  produtos: any[];
+  avaliacoes: { nota: number; comentario: string; usuario?: { name?: string } }[];
+  donoId: number;
+}
+
+
+const renderStars = (rating: number, size: string = 'text-3xl') => {
+    const fullStars = Math.floor(rating);
+    const emptyStars = 5 - fullStars;
+    
+    return (
+        <div className={`flex justify-center ${size} text-yellow-400`}>
+            {/* Estrelas cheias */}
+            {"★".repeat(fullStars)}
+            {/* Estrelas vazias */}
+            {"☆".repeat(emptyStars)}
+        </div>
+    );
+};
+
+
+export default function LojaPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  const [loja, setLoja] = useState<Loja | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    
+    
+    fetch(`http://localhost:3001/loja/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setLoja(data as Loja);
+      })
+      .catch((err) => console.error("Erro carregando loja:", err));
+  }, [id]);
+
+  if (!loja) return <p className="text-white text-center mt-10">Carregando...</p>;
+
+  const isOwner = user && Number(user.id) === loja.donoId;
+
+  
+  const media =
+    loja.avaliacoes.length > 0
+      ? (
+          loja.avaliacoes.reduce((acc, a) => acc + a.nota, 0) /
+          loja.avaliacoes.length
+        ).toFixed(2)
+      : "0.00";
+
+  return (
+    <>
+      <Navbar />
+
+      <div className="min-h-screen bg-neutral-900 text-white pb-20">
+        
+        {/* BANNER COM CONTEÚDO CENTRALIZADO */}
+        <div className="w-full h-[400px] relative overflow-hidden flex items-center justify-center">
+          
+          {/* IMAGEM DE FUNDO */}
+          <img
+            src={
+              loja.banner_url
+                ? `http://localhost:3001${loja.banner_url}`
+                : "/images/placeholder_banner.png"
+            }
+            className="w-full h-full object-cover absolute inset-0"
+            alt="Banner da loja"
+          />
+
+          <div className="absolute inset-0 bg-black opacity-40"></div>
+          
+          {/* CONTEÚDO PRINCIPAL*/}
+          <div className="relative z-10 text-center -mt-8">
+            <h1 className="text-6xl font-extrabold tracking-tight shadow-text-md">
+              {loja.nome}
+            </h1>
+            <p className="text-xl font-medium text-gray-300 mt-2 lowercase first-letter:uppercase">
+              
+              {loja.categoria?.nome || 'Sem Categoria'}
+            </p>
+          </div>
+
+          {/* BOTÕES DE AÇÃO FLUTUANTES */}
+          {isOwner && (
+            <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+              <button
+                onClick={() => router.push(`/loja/${loja.id}/editar`)}
+                className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
+                title="Editar Loja"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+              </button>
+
+              <button
+                onClick={() => router.push(`/loja/${loja.id}/adicionar_produto`)}
+                className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
+                title="Adicionar Produto"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd"/></svg>
+              </button>
+            </div>
+          )}
+
+          {/* FOTO DE PERFIL */}
+          <img
+            src={
+              loja.perfil_url
+                ? `http://localhost:3001${loja.perfil_url}`
+                : "/images/placeholder_loja.png"
+            }
+            alt="Foto da loja"
+            className="w-20 h-20 rounded-full border-4 border-white absolute bottom-4 left-4 z-20 object-cover shadow-lg"
+          />
+
+        </div>
+
+        {/* CONTEÚDO ABAIXO DO BANNER */}
+        <div className="px-6 md:px-20 lg:px-40 mt-10">
+          
+          {/* AVALIAÇÕES E DESCRIÇÃO */}
+          <div className="flex flex-col md:flex-row gap-10">
+            
+            {/* DESCRIÇÃO (Esquerda) */}
+            <div className="w-full md:w-1/3 p-4 bg-neutral-800 rounded-xl shadow-inner shadow-neutral-700">
+                <h2 className="text-xl font-semibold mb-2">Sobre {loja.nome}</h2>
+                <p className="text-gray-400 text-sm">{loja.descricao || "Esta loja não possui uma descrição detalhada."}</p>
+            </div>
+
+
+            {/* AVALIAÇÕES (Direita - Card de Destaque) */}
+            <div className="w-full md:w-2/3 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
+              <h2 className="text-3xl font-semibold text-center mb-4">
+                Reviews e Comentários
+              </h2>
+            {/* BOTÃO DE ADICIONAR COMENTÁRIO (só aparece se estiver logado e não for dono) */}
+            {user && !isOwner && (
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={() => router.push(`/loja/${loja.id}/adicionar_comentario`)}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg shadow-md transition"
+                >
+                  + Adicionar comentário
+                </button>
+              </div>
+            )}
+
+              <div className="flex justify-center items-baseline gap-4 mb-4">
+                  <p className="text-6xl font-extrabold text-yellow-400">{media}</p>
+                  {renderStars(Number(media), 'text-4xl')}
+              </div>
+              
+              <p className="text-sm text-gray-500 text-center">Baseado em {loja.avaliacoes.length} avaliações</p>
+
+              {/* LISTA DE AVALIAÇÕES */}
+              <div className="mt-8 flex overflow-x-auto space-x-4 pb-4">
+                {loja.avaliacoes.length > 0 ? (
+                    loja.avaliacoes.map((a, index) => (
+                      <div
+                        key={index}
+                        className="bg-neutral-900 flex-shrink-0 w-64 p-4 rounded-xl shadow-md border border-neutral-700"
+                      >
+                        <p className="text-yellow-400 text-lg">
+                          {renderStars(a.nota, 'text-2xl')}
+                        </p>
+                        <p className="text-gray-200 mt-1 line-clamp-3 text-sm">{a.comentario}</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          — {a.usuario?.name ?? "Usuário Anônimo"}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-center text-gray-400 w-full">
+                    Essa loja ainda não possui avaliações.
+                  </p>
+                )}
+              </div>
+              {/* Botão ver mais se tiver muitas avaliações */}
+              {loja.avaliacoes.length > 3 && (
+                <button className="text-sm text-green-400 hover:text-green-300 transition block ml-auto mt-4">
+                    ver mais
+                </button>
+              )}
+            </div>
+          </div>
+
+          
+          {/* PRODUTOS */}
+          <div className="mt-16">
+            <h2 className="text-3xl font-bold mb-6 border-b pb-2 border-neutral-700">Produtos</h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {loja.produtos.map((p: any) => (
+                <div
+                  key={p.id}
+                  onClick={() => router.push(`/produto/${p.id}`)}
+                  className="bg-neutral-800 rounded-xl hover:bg-neutral-700 cursor-pointer transition shadow-xl overflow-hidden"
+                >
+                    <img
+                      
+                      src={
+                        p.Imagems_produto_URL
+                          ? `http://localhost:3001${p.Imagems_produto_URL}`
+                          : "/images/placeholder_produto.png"
+                      }
+
+                      className="w-full h-32 object-cover rounded-lg"
+                      alt={p.nome}
+                    />
+                  <div className="p-3">
+                      <p className="mt-1 text-base font-semibold truncate">{p.nome}</p>
+                      <p className="text-lg text-green-400 font-bold">R$ {Number(p.preco).toFixed(2)}</p>
+                  </div>
+                </div>
+              ))}
+
+              {loja.produtos.length === 0 && (
+                <p className="text-gray-400 col-span-full text-center py-10">
+                  Nenhum produto foi adicionado ainda.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

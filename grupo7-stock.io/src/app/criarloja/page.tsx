@@ -1,107 +1,194 @@
-// src/app/criarloja/page.tsx
 "use client";
-import React, { useState, useEffect } from 'react'; // Adicionado useEffect
-import { useRouter } from "next/navigation"; 
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-// O import 'useParams' foi removido pois não é usado na página
+const categoriaMap: Record<string, number> = {
+  mercado: 1,
+  farmacia: 2,
+  brinquedo: 3,
+  beleza: 4,
+  moda: 5,
+  casa: 6,
+  eletronicos: 7,
+  jogos: 8,
+};
 
-// --- Componente auxiliar FileDropzone (mantido) ---
-const FileDropzone = ({ label }: { label: string }) => (
-  
-  <div 
-    className="border-2 border-dashed border-cyan-400 bg-cyan-50 p-6 rounded-xl text-center cursor-pointer hover:bg-cyan-100 transition-colors h-full flex flex-col justify-center"
-  >
-    <div className="flex flex-col items-center space-y-2">
-      <svg 
-        className="w-10 h-10 text-[#325862]" 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24" 
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.884-7.884A5 5 0 0115 6a5 5 0 014.884 4.116A4 4 0 0120 16v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z"></path>
-      </svg>
-      <p className="text-sm font-medium text-[#325862]">{label}</p>
+interface FileDropzoneProps {
+  label: string;
+  onFileSelect: (file: File | null) => void;
+}
+
+const FileDropzone = ({
+  label,
+  onFileSelect,
+  preview,
+}: {
+  label: string;
+  onFileSelect: (file: File | null) => void;
+  preview?: string | null;
+}) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div
+      className="border-2 border-dashed border-cyan-400 bg-cyan-50 p-6 rounded-xl text-center cursor-pointer hover:bg-cyan-100 transition-colors h-full flex flex-col justify-center relative"
+      onClick={() => inputRef.current?.click()}
+    >
+      {preview ? (
+        <img
+          src={preview}
+          alt="preview"
+          className="w-full h-full object-cover rounded-xl absolute inset-0"
+        />
+      ) : (
+        <div className="flex flex-col items-center space-y-2">
+          <svg
+            className="w-10 h-10 text-[#325862]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M7 16a4 4 0 01-.884-7.884A5 5 0 0115 6a5 5 0 014.884 4.116A4 4 0 0120 16v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z"
+            ></path>
+          </svg>
+          <p className="text-sm font-medium text-[#325862]">{label}</p>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => onFileSelect(e.target.files?.[0] ?? null)}
+      />
     </div>
-    <input type="file" className="hidden" />
-  </div>
-);
+  );
+};
 
-// --- Componente principal CriarLojaPage ---
 export default function CriarLojaPage() {
   const router = useRouter();
-  // const params = useParams(); // REMOVIDO: Não é usado nesta página.
-  
-  const [nomeLoja, setNomeLoja] = useState('');
-  const [categoria, setCategoria] = useState('');
-  const [descricaoLoja, setDescricaoLoja] = useState('');
-  
-  const { isAuthenticated, user, loading } = useAuth(); // Removido 'logout', pois não é usado
+  const { isAuthenticated, user, loading } = useAuth();
 
-  // 1. Redirecionamento se não estiver autenticado
+  const [nomeLoja, setNomeLoja] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [descricaoLoja, setDescricaoLoja] = useState("");
+
+  
+  const [filePerfil, setFilePerfil] = useState<File | null>(null);
+  const [fileSticker, setFileSticker] = useState<File | null>(null);
+  const [fileBanner, setFileBanner] = useState<File | null>(null);
+  const [previewPerfil, setPreviewPerfil] = useState<string | null>(null);
+  const [previewSticker, setPreviewSticker] = useState<string | null>(null);
+  const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+
+
+  
   useEffect(() => {
-    // Se o carregamento terminou e o usuário NÃO está autenticado, redireciona para login/home
     if (!loading && !isAuthenticated) {
-      router.push('/login'); // Ou a rota que você usa para login
+      router.push("/login");
     }
   }, [loading, isAuthenticated, router]);
 
-  // 2. Função de Submissão
-  const handleSubmit = (e: React.FormEvent) => {
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!user) {
-      alert("Erro: Usuário não identificado. Faça login novamente.");
+      alert("Erro: Usuário não identificado!");
       return;
     }
-    // Lógica real de envio de dados e arquivos aqui.
-    console.log("Dados da Loja para API:", { nomeLoja, categoria, descricaoLoja, donoId: user.id });
-    alert(`Tentativa de criar loja: ${nomeLoja}`); 
-    // Após sucesso: router.push(`/perfil/${user.id}`);
+    
+    try {
+      const form = new FormData();
+      const categoriaId = categoriaMap[categoria];
+
+      if (!categoriaId) {
+        alert("Selecione uma categoria válida!");
+        return;
+      }
+
+      form.append("categoriaId", String(categoriaId));
+      form.append("nome", nomeLoja);
+      form.append("descricao", descricaoLoja);
+      form.append("donoId", String(Number(user.id)));
+
+      if (filePerfil) form.append("fotoPerfil", filePerfil);
+      if (fileSticker) form.append("logoSticker", fileSticker);
+      if (fileBanner) form.append("banner", fileBanner);
+
+      const res = await fetch("http://localhost:3001/loja", {
+        method: "POST",
+        body: form,
+      });
+
+      if (!res.ok) {
+      const text = await res.text();
+      console.error("ERRO BRUTO:", text);
+      alert("Erro ao criar loja!");
+      return;
+    }
+
+      alert("Loja criada com sucesso!");
+      router.push(`/perfil/${user.id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao conectar ao servidor.");
+    }
   };
 
-  // 3. Renderização Condicional durante o carregamento
   if (loading || !isAuthenticated) {
-    // Mostra uma tela de carregamento ou vazia enquanto a autenticação é verificada
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <h1 className="text-xl text-gray-500">Verificando autenticação...</h1>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <h1 className="text-xl text-gray-500">Verificando autenticação...</h1>
+      </div>
     );
   }
 
-  // 4. Renderização do Formulário (Apenas se autenticado)
   return (
     <div className="min-h-screen bg-gray-50 p-8 flex justify-center">
-      
       <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl">
-        
-        {/* Título e Botão de Fechar/Voltar */}
         <div className="flex justify-between items-center mb-10 border-b pb-4">
           <h1 className="text-3xl font-bold text-black">Adicionar Loja</h1>
-          <button 
-            // CORREÇÃO: Verifica se 'user' existe antes de acessar 'user.id'
-            onClick={() => router.push(`/perfil/${user?.id}`)} 
+
+          <button
+            onClick={() => router.push(`/perfil/${user?.id}`)}
             className="text-gray-500 hover:text-gray-900 transition"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </button>
         </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-8">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800">Detalhes da Loja</h2>
 
-              {/* Nome da Loja */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* LADO ESQUERDO */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Detalhes da Loja
+              </h2>
+
               <div>
-                <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">Nome da Loja (Obrigatório)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nome da Loja (Obrigatório)
+                </label>
                 <input
                   type="text"
-                  id="nome"
                   placeholder="Ex: Rare Beauty"
                   value={nomeLoja}
                   onChange={(e) => setNomeLoja(e.target.value)}
@@ -110,65 +197,79 @@ export default function CriarLojaPage() {
                 />
               </div>
 
-              {/* Categoria */}
               <div>
-                <label htmlFor="categoria" className="block text-sm font-medium text-gray-700 mb-1">Categoria Principal</label>
-                <div className="relative">
-                  <select
-                    id="categoria"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value)}
-                    className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-purple-500 text-lg text-gray-800 bg-white cursor-pointer"
-                    required
-                  >
-                    <option value="" disabled>Selecione uma categoria</option>
-                    <option value="alimentos">Meracado</option>
-                    <option value="entretenimento">Jogos</option>
-                    <option value="farmácia">Remédios</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Categoria Principal
+                </label>
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-purple-500 text-lg text-gray-800 bg-white cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>Selecione uma categoria</option>
+                  <option value="mercado">Mercado</option>
+                  <option value="farmacia">Farmácia</option>
+                  <option value="brinquedo">Brinquedo</option>
+                  <option value="beleza">Beleza</option>
+                  <option value="moda">Moda</option>
+                  <option value="casa">Casa</option>
+                  <option value="eletronicos">Eletrônicos</option>
+                  <option value="jogos">Jogos</option>
+                </select>
               </div>
 
-              {/* Descrição da Loja */}
               <div>
-                <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">Descrição (Opcional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição (Opcional)
+                </label>
                 <textarea
-                  id="descricao"
                   rows={4}
-                  placeholder="Fale um pouco sobre sua loja e seus produtos..."
+                  placeholder="Fale um pouco sobre sua loja..."
                   value={descricaoLoja}
                   onChange={(e) => setDescricaoLoja(e.target.value)}
                   className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-purple-500 text-lg text-gray-800 resize-none"
                 />
               </div>
-
             </div>
-            
-            {/* COLUNA 2: Uploads de Imagens (Expandido) */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800">Identidade Visual</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Foto de Perfil */}
-                <FileDropzone label="Foto de perfil de sua loja" />
-                
-                {/* Logo em SVG */}
-                <FileDropzone label="Logo em SVG de sua loja" />
-              </div>
 
-              {/* Banner (Ocupa a largura total da coluna) */}
-              <div className="h-48"> 
-                <FileDropzone label="Anexe o banner de sua loja (Horizontal)" />
+            {/* LADO DIREITO */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Identidade Visual
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FileDropzone
+                    label="Foto de perfil de sua loja"
+                    onFileSelect={(file) => {
+                      setFilePerfil(file);
+                      setPreviewPerfil(file ? URL.createObjectURL(file) : null);
+                    }}
+                    preview={previewPerfil}
+                  />
+
+                  <FileDropzone
+                    label="Logo em SVG de sua loja"
+                    onFileSelect={(file) => {
+                      setFileSticker(file);
+                      setPreviewSticker(file ? URL.createObjectURL(file) : null);
+                    }}
+                    preview={previewSticker}
+                  />
+
+                  <FileDropzone
+                    label="Anexe o banner de sua loja (Horizontal)"
+                    onFileSelect={(file) => {
+                      setFileBanner(file);
+                      setPreviewBanner(file ? URL.createObjectURL(file) : null);
+                    }}
+                    preview={previewBanner}
+                  />
               </div>
+            </div>
           </div>
-          </div>
-          
-          {/* Botão Adicionar (Rodapé e largura total) */}
+
           <div className="pt-8 border-t border-gray-200">
             <button
               type="submit"

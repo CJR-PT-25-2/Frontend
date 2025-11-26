@@ -19,7 +19,7 @@ export default function Navbar(){
                         <button 
                         aria-label="feed"
                         className="p-2 rounded-full hover:scale-105 cursor-pointer "
-                        onClick={() => router.push('/home')}>
+                        onClick={() => router.push('/')}>
                             <img
                             className="h-10 w-auto"
                             src="/images/logo.png"

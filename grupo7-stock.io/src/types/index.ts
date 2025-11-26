@@ -12,6 +12,7 @@ export interface Produto {
   categoria_id: number;
   nome: string;
   descrição: string; 
+  donoId?: number;
   preco: number;
   estoque: number;
   imagens: Imagens_produto[]; 
@@ -21,6 +22,7 @@ export interface Loja {
   id: number;
   nome: string;
   descricao?: string;
+  categoriaId: number;
   donoId: number;
   banner_url?: string;
   sticker_url?: string;
