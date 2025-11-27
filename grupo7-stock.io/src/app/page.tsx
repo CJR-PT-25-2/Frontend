@@ -182,35 +182,35 @@ League Spartan text-black">
             </div>
             <h1> Categorias </h1>
             <div className=" justify-center flex overflow-x-auto whitespace-nowrap p-4 space-x-10  flex-shrink-0"> {/* botoes de categorias com scroll horizontal */}
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica')}>
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/mercado')}>
                 <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]"/>
                 <p className="text-sm text-center mt-1">Mercado</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/remedio')}>
                 <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]"/>
                 <p className="text-sm text-center mt-1">Remédios</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/cosmeticos')}>
                 <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Cosmeticos</p>
+                <p className="text-sm text-center mt-1">Cosméticos</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/moda')}>
                 <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Roupas</p>
+                <p className="text-sm text-center mt-1">Moda</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/eletronicos')}>
                 <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Eletronicos</p>
+                <p className="text-sm text-center mt-1">Eletrônicos</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/jogos')}>
                 <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]"/>
                 <p className="text-sm text-center mt-1">Jogos</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/brinquedos')}>
                 <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]"/>
                 <p className="text-sm text-center mt-1">Brinquedos</p>
               </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105">
+              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"onClick={() => router.push('../categoria_especifica/casa')}>
                 <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]"/>
                 <p className="text-sm text-center mt-1">Casa</p>
               </button>

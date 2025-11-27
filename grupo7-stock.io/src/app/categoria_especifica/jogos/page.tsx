@@ -1,29 +1,20 @@
 "use client";
 
-import Navbar from "../components/navbar";
-import { GiFruitBowl } from "react-icons/gi";
-import { GiMedicinePills } from "react-icons/gi";
-import { GiLipstick } from "react-icons/gi";
-import { GiLargeDress } from "react-icons/gi";
-import { FaLaptop } from "react-icons/fa";
-import { IoGameControllerSharp } from "react-icons/io5";
-import { TbHorseToy } from "react-icons/tb";
-import { FaHouseChimneyWindow } from "react-icons/fa6";
+import Navbar from "../../components/navbar";
 import { FaMagnifyingGlass } from "react-icons/fa6";
-import { FaAngleDown } from "react-icons/fa";
 
 
 export default function FeedPage() {
     return (
         <>
         <Navbar />
-        <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
+        <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
            <div className=" text-white">
-             <h1 className="text-4xl font-bold leading-snug pl-20 pt-15 ">
-                  O UNIVERSO culinário,
+             <h1 className="text-4xl leading-snug pl-45 pt-15 ">
+                  O universo da <strong className="font-bold">games</strong>,
              </h1>
-             <h1 className="text-4xl font-bold leading-snug pl-60 pb-10">
-                em so lugar!
+             <h1 className="text-4xl leading-snug pl-70 pb-10">
+                  em um só lugar!
              </h1>   
            </div>
            <div className=" h-full relative ml-8">
@@ -49,19 +40,15 @@ export default function FeedPage() {
             </div>
           </div>  
           <div className=" flex space-x-8  items-center   overflow-x-auto whitespace-nowrap">
-            < button className=" h-10 w-20 text-[#982829] bg-white  rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                Frutas
+            < button className=" h-10 w-25 text-[#982829] bg-white  rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
+                Eletrônicos
+            </button>
+            < button className=" h-10 w-24 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
+                Tabuleiros
             </button>
             < button className=" h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                Doces
-            </button>
-            < button className=" h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                Bebidas
-            </button>
-            < button className=" h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                Salgados
-            </button>
-            
+                Outros
+            </button>           
 
                         
           </div>
