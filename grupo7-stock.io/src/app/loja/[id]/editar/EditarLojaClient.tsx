@@ -13,6 +13,7 @@ const categoriaMap: Record<string, number> = {
   casa: 6,
   eletrônicos: 7,
   jogos: 8,
+  outros: 9,
 };
 
 

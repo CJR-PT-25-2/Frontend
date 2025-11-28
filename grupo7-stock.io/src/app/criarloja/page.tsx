@@ -11,6 +11,7 @@ const categoriaMap: Record<string, number> = {
   casa: 6,
   eletronicos: 7,
   jogos: 8,
+  outros: 9,
 };
 
 interface FileDropzoneProps {
@@ -216,6 +217,7 @@ export default function CriarLojaPage() {
                   <option value="casa">Casa</option>
                   <option value="eletronicos">Eletrônicos</option>
                   <option value="jogos">Jogos</option>
+                  <option value="outros">Outros</option>
                 </select>
               </div>
 
