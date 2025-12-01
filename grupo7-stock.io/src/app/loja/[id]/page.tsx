@@ -339,7 +339,7 @@ export default function LojaPage() {
                         className="w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 transition"
                         title="Excluir Produto"
                       >
-                        🗑️
+                        🗑
                       </button>
                     </div>
                   )}
