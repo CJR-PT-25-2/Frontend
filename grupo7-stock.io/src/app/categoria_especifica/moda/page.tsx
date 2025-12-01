@@ -1,10 +1,62 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
-import { FaMagnifyingGlass } from "react-icons/fa6";
+import api from "@/lib/api";
 
+interface Produto {
+    id: number;
+    nome: string;
+    preco: number;
+    categoria_id: number;
+
+    Imagems_produto_URL: string | null;
+    imagem1_url: string | null;
+    imagem2_url: string | null;
+    imagem3_url: string | null;
+    imagem4_url: string | null;
+}
 
 export default function FeedPage() {
+    const [produtos, setProdutos] = useState<Produto[]>([]);
+    const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api
+            .get("/produto/categoria_pai/27")
+            .then((res) => {
+                console.log("Produtos recebidos:", res.data);
+                setProdutosOriginais(res.data);
+                setProdutos(res.data);
+            })
+            .catch((err) => console.error("Erro ao carregar Moda:", err))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const filtrarCategoria = (subId: number) => {
+        console.log("Filtrando categoria:", subId);
+
+        const filtrados = produtosOriginais.filter(
+            (p) => Number(p.categoria_id) === Number(subId)
+        );
+
+        console.log("Filtrados:", filtrados);
+
+        setProdutos(filtrados);
+    };
+
+    const getImagemProduto = (p: Produto) => {
+        return (
+            p.Imagems_produto_URL ??
+            p.imagem1_url ??
+            p.imagem2_url ??
+            p.imagem3_url ??
+            p.imagem4_url ??
+            "/images/sem-imagem.png"
+        );
+    };
+
     return (
         <>
             <Navbar />
@@ -22,46 +74,68 @@ export default function FeedPage() {
                 </div>
 
             </div>
-            <div className=" relative z-10 bg-[#F6F3E4] h-300  pl-10 pt-10 ">
-                <div className="  text-2xl font- League Spartan text-black">
-                    <div className=" flex items-center justify-end pr-5 pb-5">
-                        <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2">
-                            <input
-                                type="text"
-                                placeholder="Procurar por..."
-                                className=" bg-transparent outline-none w-full h-full text-black px-2
-                            placeholder: text-[#982829] 
-                            placeholder: text-sm"
-                            />
-                            <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
-                                <FaMagnifyingGlass size={20} className="ml-2 text-[#982829]" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div className=" flex space-x-8  items-center   overflow-x-auto whitespace-nowrap">
-                    < button className=" h-10 w-20 text-[#982829] bg-white  rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                        Blusas
+
+            <div className="relative z-10 bg-[#F6F3E4] h-300 pl-10 pt-10">
+
+                <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
+                    <button onClick={() => filtrarCategoria(0)}
+                        className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        Todos
                     </button>
-                    < button className=" h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                        Calças
+
+                    <button onClick={() => filtrarCategoria(29)}
+                        className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        Blusa
                     </button>
-                    < button className=" h-10 w-22 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
-                        Casacos            </button>
-                    < button className=" h-10 w-22 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
+
+                    <button onClick={() => filtrarCategoria(30)}
+                        className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        Calça
+                    </button>
+
+                    <button onClick={() => filtrarCategoria(31)}
+                        className="h-10 w-23 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
                         Sapatos
                     </button>
-                    < button className=" h-10 w-22 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
+                    <button onClick={() => filtrarCategoria(28)}
+                        className="h-10 w-24 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
                         Vestidos
                     </button>
-                    < button className=" h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer pl-10 pr-10 flex items-center justify-center">
+
+                    <button onClick={() => filtrarCategoria(32)}
+                        className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
                         Outros
                     </button>
 
                 </div>
 
+
+                <div className="grid grid-cols-4 gap-6 mt-10">
+                    {loading ? (
+                        <p>Carregando...</p>
+                    ) : produtos.length === 0 ? (
+                        <p>Nenhum produto encontrado.</p>
+                    ) : (
+                        produtos.map((p) => (
+                            <div
+                                key={p.id}
+                                className="bg-white p-4 rounded-xl shadow-md hover:scale-105 transition"
+                            >
+                                <img
+                                    src={getImagemProduto(p)}
+                                    className="w-full h-40 object-cover rounded-lg"
+                                />
+
+                                <p className="mt-2 font-bold">{p.nome}</p>
+
+                                <p className="font-bold text-[#982829] mt-1">
+                                    R$ {Number(p.preco).toFixed(2)}
+                                </p>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </>
-
-    )
+    );
 }
