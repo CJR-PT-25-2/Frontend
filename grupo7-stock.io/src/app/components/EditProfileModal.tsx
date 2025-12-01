@@ -1,24 +1,29 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/app/components/navbar";
 import api from "@/lib/api";
 import { User } from "@/types";
 
-export default function EditarPerfilPage() {
-  const router = useRouter();
+interface EditProfileModalProps {
+  onClose: () => void; 
+  onSaveSuccess: () => void; 
+}
+
+export default function EditProfileModal({ onClose, onSaveSuccess }: EditProfileModalProps) {
+  const router = useRouter(); 
 
   const [perfil, setPerfil] = useState<User | null>(null);
 
   const [dadosForm, setDadosForm] = useState({
     name: "",
     username: "",
-    email: ""
+    email: "",
+    senha: ""
   });
 
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
-  const [deletando, setDeletando] = useState(false); // Novo estado para exclusão
+  const [deletando, setDeletando] = useState(false); 
   const [carregando, setCarregando] = useState(true);
 
   const [fotoArquivo, setFotoArquivo] = useState<File | null>(null);
@@ -30,12 +35,11 @@ export default function EditarPerfilPage() {
     };
   }, [previewUrl]);
 
-  // =========================
-  // 🔹 Carregar dados do usuário
-  // =========================
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
+      
       router.replace("/login?redirect=/perfil/editar");
       return;
     }
@@ -43,17 +47,15 @@ export default function EditarPerfilPage() {
     api
       .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
-        console.log("📌 DADOS RECEBIDOS DO BACKEND:", res.data);
-
         setPerfil(res.data);
 
         setDadosForm({
           name: res.data.name || "",
           username: res.data.username || "",
           email: res.data.email || "",
+          senha: res.data.senha || "",
         });
 
-        // Configura preview inicial da foto existente
         if (res.data.foto_perfil_URL) {
             setPreviewUrl(`http://localhost:3001${res.data.foto_perfil_URL}`);
         }
@@ -63,16 +65,12 @@ export default function EditarPerfilPage() {
       .catch(() => router.replace("/login"));
   }, []);
 
-  // =========================
-  // 🔹 Alterar dados textuais
-  // =========================
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDadosForm({ ...dadosForm, [e.target.name]: e.target.value });
   };
 
-  // =========================
-  // 🔹 Salvar alterações
-  // =========================
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
@@ -82,12 +80,12 @@ export default function EditarPerfilPage() {
     if (!token || !perfil) return;
 
     try {
-      // 1. Atualizar dados textuais
+      
       await api.patch(`/user/${perfil.id}`, dadosForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // 2. Enviar foto se houver
+      
       if (fotoArquivo) {
         const formData = new FormData();
         formData.append("file", fotoArquivo); 
@@ -103,9 +101,7 @@ export default function EditarPerfilPage() {
           }
         );
 
-        console.log("📸 Upload retornou:", upload.data);
-
-        // Atualiza a imagem no estado
+        
         if (upload.data.foto_perfil_URL) {
           setPerfil((prev) =>
             prev ? { ...prev, foto_perfil_URL: upload.data.foto_perfil_URL } : prev
@@ -114,7 +110,8 @@ export default function EditarPerfilPage() {
       }
 
       alert("Perfil atualizado com sucesso!");
-      router.push(`/perfil/${perfil.id}`);
+      
+      onSaveSuccess();
 
     } catch (err) {
       console.error(err);
@@ -124,15 +121,12 @@ export default function EditarPerfilPage() {
     }
   };
 
-  // =========================
-  // 💀 Apagar perfil (NOVA FUNÇÃO)
-  // =========================
+  
   const apagarPerfil = useCallback(async () => {
     if (!perfil) return;
 
     const confirmacao = window.confirm(
-      `ATENÇÃO! Você tem certeza que deseja APAGAR PERMANENTEMENTE sua conta? 
-      Esta ação é irreversível e excluirá todas as suas lojas e produtos.`
+      `ATENÇÃO! Você tem certeza que deseja APAGAR PERMANENTEMENTE sua conta? Esta ação é irreversível e excluirá todas as suas lojas e produtos.`
     );
     if (!confirmacao) return;
 
@@ -140,7 +134,6 @@ export default function EditarPerfilPage() {
       `Para confirmar a exclusão, digite seu username: "${perfil.username}"`
     );
     
-    // Verifica se o username bate (ignora case sensitivity para prompt, mas você pode ajustar se o backend for estrito)
     if (usernameConfirmado?.toLowerCase() !== perfil.username.toLowerCase()) {
       alert("Username não corresponde. Exclusão abortada.");
       return;
@@ -150,10 +143,8 @@ export default function EditarPerfilPage() {
     const token = localStorage.getItem("token");
     
     try {
-      // Chamada DELETE para a rota de usuário (assumindo que o backend trata a exclusão em cascata)
       await api.delete(`/user/${perfil.id}`, { headers: { Authorization: `Bearer ${token}` } });
       
-      // Limpa o token e redireciona
       localStorage.removeItem("token");
       alert("Seu perfil e dados associados foram excluídos com sucesso.");
       router.replace("/login"); 
@@ -169,30 +160,30 @@ export default function EditarPerfilPage() {
 
 
   if (carregando || !perfil) {
-  return (
-    <>
-      <Navbar />
-      <div className="min-h-screen flex items-center justify-center">
-        Carregando dados para edição...
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+        <div className="p-8 bg-white rounded-xl shadow-2xl">
+          Carregando dados para edição...
+        </div>
       </div>
-    </>
-  );
-}
+    );
+  }
 
 
   
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-[#f4eaa8] py-10 px-6">
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg relative"> {/* Adicionado relative aqui */}
+    
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] overflow-y-auto py-10 px-6">
+      
+      {/* Container do Modal */}
+      <div className="max-w-2xl w-full mx-auto bg-white p-8 rounded-xl shadow-lg relative my-auto"> 
 
-          {/* NOVO BOTÃO DE FECHAR (X) */}
+          {/* BOTÃO DE FECHAR */}
           <button
-            onClick={() => router.back()} // Mantém a funcionalidade de voltar
+            onClick={onClose} 
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition p-2 rounded-full hover:bg-gray-100"
             disabled={salvando || deletando}
-            title="Cancelar e Voltar"
+            title="Cancelar e Fechar"
           >
             <svg
               className="w-6 h-6"
@@ -208,8 +199,6 @@ export default function EditarPerfilPage() {
               ></path>
             </svg>
           </button>
-          {/* FIM DO NOVO BOTÃO DE FECHAR */}
-
 
           <h1 className="text-3xl font-bold mb-8 text-black">Editar Perfil</h1>
 
@@ -261,11 +250,11 @@ export default function EditarPerfilPage() {
 
           {fotoArquivo && (
             <p className="text-sm text-gray-700 -mt-4 mb-4">
-              Arquivo selecionado: <strong>{fotoArquivo.name}</strong>
+              Arquivo selecionado: **{fotoArquivo.name}**
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 text-left">
             {/* Nome */}
             <div>
               <label className="block text-sm font-medium text-black">Nome</label>
@@ -306,11 +295,22 @@ export default function EditarPerfilPage() {
               />
             </div>
 
+            {/* Senha */}
+            <div>
+                <label className="block text-sm font-medium text-black">Nova Senha</label>
+                <input
+                    type="senha"
+                    name="senha"
+                    value={dadosForm.senha}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-700"
+                />
+            </div>
+
             {erro && <p className="text-red-500 text-sm">{erro}</p>}
 
-            <div className="pt-4 flex justify-end"> {/* Removido 'space-x-3' e o botão Cancelar */}
-              {/* Botão Cancelar foi movido para o cabeçalho */}
-
+            <div className="pt-4 flex justify-end">
               <button
                 type="submit"
                 className={`px-6 py-3 text-white rounded-lg transition ${
@@ -323,7 +323,7 @@ export default function EditarPerfilPage() {
             </div>
           </form>
 
-          {/* Seção de Ações Perigosas */}
+          {/* Seção de Apagar perfil*/}
           <div className="mt-10 pt-6 border-t border-gray-200">
             
             <button
@@ -338,7 +338,6 @@ export default function EditarPerfilPage() {
             </button>
           </div>
         </div>
-      </div>
-    </>
+    </div>
   );
 }

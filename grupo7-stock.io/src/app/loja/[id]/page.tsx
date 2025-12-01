@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/app/components/navbar";
+import api from "@/lib/api";
+
+
+import EditStoreModal from "@/app/components/EditStoreModal"; 
+import EditProductModal from "@/app/components/EditProductModal"; 
+import AddProductModal from "@/app/components/AddProductModal";
 
 interface Loja {
   id: number;
@@ -41,9 +47,14 @@ export default function LojaPage() {
 
   const [loja, setLoja] = useState<Loja | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
+  
+  const [modalLojaAberto, setModalLojaAberto] = useState(false);
+  const [produtoIdAEditar, setProdutoIdAEditar] = useState<number | null>(null); 
+  const [modalProdutoAberto, setModalProdutoAberto] = useState(false);
 
+  
+  const fetchLoja = useCallback(() => {
+    if (!id) return;
     fetch(`http://localhost:3001/loja/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -51,6 +62,73 @@ export default function LojaPage() {
       })
       .catch((err) => console.error("Erro carregando loja:", err));
   }, [id]);
+
+  useEffect(() => {
+    fetchLoja();
+  }, [fetchLoja]);
+
+  
+  const handleStoreUpdate = (lojaAtualizada: Loja) => {
+      setLoja(prev => (prev ? { ...prev, ...lojaAtualizada } : null));
+      setModalLojaAberto(false);
+  };
+  
+  
+  const handleProductUpdate = (produtoAtualizado: any) => {
+      setLoja(prevLoja => {
+          if (!prevLoja) return null;
+
+          
+          const produtosAtualizados = prevLoja.produtos.map((p: any) => 
+              p.id === produtoAtualizado.id ? produtoAtualizado : p
+          );
+
+          return { ...prevLoja, produtos: produtosAtualizados };
+      });
+      setProdutoIdAEditar(null); 
+  };
+
+  const handleProductAddSuccess = (newProduto: any) => {
+      setLoja(prevLoja => {
+          if (!prevLoja) return null;
+          return {
+              ...prevLoja,
+              produtos: [...prevLoja.produtos, newProduto], 
+          };
+      });
+      setModalProdutoAberto(false); 
+  };
+  
+  const excluirProduto = useCallback(async (produtoId: number, produtoNome: string, e: React.MouseEvent) => {
+    e.stopPropagation(); 
+    if (!loja) return;
+
+    const confirmado = window.confirm(
+      `Tem certeza que deseja excluir o produto "${produtoNome}"?`
+    );
+    if (!confirmado) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/produto/${produtoId}`, { headers: { Authorization: `Bearer ${token}` } });
+      
+      alert(`Produto "${produtoNome}" excluído!`);
+
+      
+      setLoja((prevLoja) => {
+        if (!prevLoja) return null;
+        return {
+          ...prevLoja,
+          produtos: prevLoja.produtos.filter((p) => p.id !== produtoId),
+        };
+      });
+
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao excluir o produto.");
+    }
+  }, [loja]);
+
 
   if (!loja)
     return <p className="text-white text-center mt-10">Carregando...</p>;
@@ -96,22 +174,20 @@ export default function LojaPage() {
           {isOwner && (
             <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
               <button
-                onClick={() => router.push(`/loja/${loja.id}/editar`)}
+                onClick={() => setModalLojaAberto(true)} 
                 className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
                 title="Editar Loja"
               >
-                ✏️
+                🖉
               </button>
 
-              <button
-                onClick={() =>
-                  router.push(`/loja/${loja.id}/adicionar_produto`)
-                }
-                className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
-                title="Adicionar Produto"
-              >
-                ➕
-              </button>
+                <button
+                  onClick={() => setModalProdutoAberto(true)} 
+                  className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
+                  title="Adicionar Produto"
+                >
+                  ➕
+                </button>
             </div>
           )}
 
@@ -130,13 +206,13 @@ export default function LojaPage() {
         <div className="px-6 md:px-20 lg:px-40 mt-10">
           <div className="flex flex-col md:flex-row gap-10">
             {/* DESCRIÇÃO */}
-            <div className="w-full md:w-1/3 p-4 bg-neutral-800 rounded-xl shadow-inner shadow-neutral-700">
-              <h2 className="text-xl font-semibold mb-2">Sobre {loja.nome}</h2>
-              <p className="text-gray-400 text-sm">
-                {loja.descricao ||
-                  "Esta loja não possui uma descrição detalhada."}
-              </p>
-            </div>
+          <div className="w-full md:w-1/3 p-4 bg-neutral-800 rounded-xl shadow-inner shadow-neutral-700">
+            <h2 className="text-xl font-semibold mb-2">Sobre {loja.nome}</h2>
+            <p className="text-gray-400 text-sm break-words"> 
+              {loja.descricao ||
+                "Esta loja não possui uma descrição detalhada."}
+            </p>
+          </div>
 
             {/* AVALIAÇÕES */}
             <div className="w-full md:w-2/3 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
@@ -168,12 +244,12 @@ export default function LojaPage() {
                 Baseado em {loja.avaliacoes.length} avaliações
               </p>
 
-              {/* AVALIAÇÕES CLICÁVEIS (APENAS MUDANÇA NECESSÁRIA) */}
+              {/* AVALIAÇÕES CLICÁVEIS */}
               <div className="mt-8 flex overflow-x-auto space-x-4 pb-4">
                 {loja.avaliacoes.length > 0 ? (
                   loja.avaliacoes.map((a, index) => (
                     <div
-                      key={index}
+                      key={a.id || index}
                       onClick={() =>
                         router.push(
                           `/loja/${loja.id}/avaliacoes/${a.id ?? index}`
@@ -220,26 +296,53 @@ export default function LojaPage() {
               {loja.produtos.map((p: any) => (
                 <div
                   key={p.id}
-                  onClick={() => router.push(`/produto/${p.id}`)}
-                  className="bg-neutral-800 rounded-xl hover:bg-neutral-700 cursor-pointer transition shadow-xl overflow-hidden"
+                  className="bg-neutral-800 rounded-xl hover:bg-neutral-700 cursor-pointer transition shadow-xl overflow-hidden relative group" 
                 >
-                  <img
-                    src={
-                      p.Imagems_produto_URL
-                        ? `http://localhost:3001${p.Imagems_produto_URL}`
-                        : "/images/placeholder_produto.png"
-                    }
-                    className="w-full h-32 object-cover rounded-lg"
-                    alt={p.nome}
-                  />
-                  <div className="p-3">
-                    <p className="mt-1 text-base font-semibold truncate">
-                      {p.nome}
-                    </p>
-                    <p className="text-lg text-green-400 font-bold">
-                      R$ {Number(p.preco).toFixed(2)}
-                    </p>
+                  <div onClick={() => router.push(`/produto/${p.id}`)}>
+                    <img
+                      src={
+                        p.Imagems_produto_URL
+                          ? `http://localhost:3001${p.Imagems_produto_URL}`
+                          : "/images/placeholder_produto.png"
+                      }
+                      className="w-full h-32 object-cover rounded-t-xl"
+                      alt={p.nome}
+                    />
+                    <div className="p-3">
+                      <p className="mt-1 text-base font-semibold truncate">
+                        {p.nome}
+                      </p>
+                      <p className="text-lg text-green-400 font-bold">
+                        R$ {Number(p.preco).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* BOTÕES DE EDIÇÃO/EXCLUSÃO (Apenas para o dono) */}
+                  {isOwner && (
+                    <div className="absolute top-2 right-2 flex gap-1 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                      {/* LÁPIS (EDITAR) */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          setProdutoIdAEditar(p.id); 
+                        }}
+                        className="w-7 h-7 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
+                        title="Editar Produto"
+                      >
+                        🖉
+                      </button>
+
+                      {/* LIXEIRA (DELETAR) */}
+                      <button
+                        onClick={(e) => excluirProduto(p.id, p.nome, e)}
+                        className="w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 transition"
+                        title="Excluir Produto"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -252,6 +355,34 @@ export default function LojaPage() {
           </div>
         </div>
       </div>
+      
+      {/* MODAL 1: EDIÇÃO DE LOJA (CONTROLADO) */}
+      {modalLojaAberto && (
+        <EditStoreModal
+          id={String(loja.id)}
+          onClose={() => setModalLojaAberto(false)}
+          onSaveSuccess={handleStoreUpdate}
+        />
+      )}
+      
+      {/* MODAL 2: EDIÇÃO DE PRODUTO (CONTROLADO) */}
+      {produtoIdAEditar !== null && (
+        <EditProductModal
+          id={String(produtoIdAEditar)}
+          onClose={() => setProdutoIdAEditar(null)}
+          onSaveSuccess={handleProductUpdate}
+        />
+      )}
+
+      {/* MODAL 3: ADICIONAR PRODUTO */}
+      {modalProdutoAberto && loja && (
+        <AddProductModal
+          lojaId={String(loja.id)}
+          onClose={() => setModalProdutoAberto(false)}
+          onSuccess={handleProductAddSuccess}
+        />
+      )}
+
     </>
   );
 }
