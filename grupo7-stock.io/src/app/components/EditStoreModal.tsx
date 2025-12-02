@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api"; // Assumindo que este módulo API é usado para DELETE
+import api from "@/lib/api";
+
 
 const categoriaMap: Record<string, number> = {
   mercado: 1,
@@ -17,12 +18,16 @@ const categoriaMap: Record<string, number> = {
   outros: 9,
 };
 
-
 const categoriasFixas = Object.entries(categoriaMap).map(([nome, id]) => ({
   id: id,
   nome: nome.charAt(0).toUpperCase() + nome.slice(1), 
 }));
 
+interface EditStoreModalProps {
+  id: string; 
+  onClose: () => void; 
+  onSaveSuccess: (lojaAtualizada: any) => void; 
+}
 
 const FileDropzone = ({
   label,
@@ -97,31 +102,28 @@ const FileDropzone = ({
 
 
 
-export default function EditarLojaClient({ id }: { id: string }) {
-  const { user } = useAuth(); // Usando user do AuthContext
+export default function EditStoreModal({ id, onClose, onSaveSuccess }: EditStoreModalProps) {
+  const { user } = useAuth();
   const router = useRouter();
 
   const [loja, setLoja] = useState<any>(null);
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
-  
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
-
 
   const [filePerfil, setFilePerfil] = useState<File | null>(null);
   const [fileSticker, setFileSticker] = useState<File | null>(null);
   const [fileBanner, setFileBanner] = useState<File | null>(null);
 
-  
   const [previewPerfil, setPreviewPerfil] = useState<string | null>(null);
   const [previewSticker, setPreviewSticker] = useState<string | null>(null);
   const [previewBanner, setPreviewBanner] = useState<string | null>(null);
 
-
-  // Efeito para carregar os dados da loja
+  
   useEffect(() => {
     
-    // Assumindo que a função fetch original está correta
+    let urlsToRevoke: string[] = [];
+
     fetch(`http://localhost:3001/loja/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -130,31 +132,34 @@ export default function EditarLojaClient({ id }: { id: string }) {
         setDescricao(data.descricao);
         setCategoriaId(data.categoriaId ? Number(data.categoriaId) : null);
 
-        
         const BASE = "http://localhost:3001";
 
-        if (data.perfil_url)
-          setPreviewPerfil(data.perfil_url.startsWith("http")
-            ? data.perfil_url
-            : BASE + data.perfil_url);
-
-        if (data.sticker_url)
-          setPreviewSticker(data.sticker_url.startsWith("http")
-            ? data.sticker_url
-            : BASE + data.sticker_url);
-
-        if (data.banner_url)
-          setPreviewBanner(data.banner_url.startsWith("http")
-            ? data.banner_url
-            : BASE + data.banner_url);
+        const updatePreview = (url: string | null, setPreview: React.Dispatch<React.SetStateAction<string | null>>) => {
+            if (url) {
+                const fullUrl = url.startsWith("http") ? url : BASE + url;
+                setPreview(fullUrl);
+            }
+        };
+        
+        
+        updatePreview(data.perfil_url, setPreviewPerfil);
+        updatePreview(data.sticker_url, setPreviewSticker);
+        updatePreview(data.banner_url, setPreviewBanner);
 
       })
-      .catch(error => console.error("Erro ao carregar loja:", error));
+      .catch(error => {
+        console.error("Erro ao carregar loja:", error);
+        alert("Erro ao carregar loja.");
+        onClose(); 
+      });
 
     
-  }, [id]);
+    return () => {
+        urlsToRevoke.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [id, onClose]);
 
-  // Função para lidar com a submissão do formulário (PATCH)
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -165,17 +170,17 @@ export default function EditarLojaClient({ id }: { id: string }) {
       form.append("categoriaId", String(categoriaId));
     }
 
-    
     if (filePerfil) form.append("fotoPerfil", filePerfil);
     if (fileSticker) form.append("logoSticker", fileSticker);
     if (fileBanner) form.append("banner", fileBanner);
+    
+    
     if (!previewPerfil && !filePerfil && loja?.perfil_url) form.append("removeFotoPerfil", "true");
     if (!previewSticker && !fileSticker && loja?.sticker_url) form.append("removeLogoSticker", "true");
     if (!previewBanner && !fileBanner && loja?.banner_url) form.append("removeBanner", "true");
 
-
     try {
-        const token = localStorage.getItem("token"); // Necessário para autenticação
+        const token = localStorage.getItem("token");
         const res = await fetch(`http://localhost:3001/loja/${id}`, {
             method: "PATCH",
             body: form,
@@ -191,8 +196,11 @@ export default function EditarLojaClient({ id }: { id: string }) {
             return;
         }
 
+        const data = await res.json();
         alert("Loja editada com sucesso!");
-        router.push(`/loja/${id}`);
+       
+        onSaveSuccess(data); 
+
     } catch (error) {
         console.error(error);
         alert("Erro ao conectar ao servidor.");
@@ -200,15 +208,15 @@ export default function EditarLojaClient({ id }: { id: string }) {
   };
 
 
-  // NOVA FUNÇÃO DE EXCLUSÃO
+  
   const excluirLoja = useCallback(async () => {
-    // 1. Verificação preliminar
+    
     if (!loja || !user || user.id !== loja.donoId) {
         alert("Erro: Você não tem permissão para excluir esta loja.");
         return;
     }
 
-    // 2. Confirmação
+    
     const confirmacao = window.confirm(
       `ATENÇÃO: Você tem certeza que deseja excluir a loja "${loja.nome}"? Esta ação é irreversível e excluirá todos os produtos.`
     );
@@ -222,43 +230,47 @@ export default function EditarLojaClient({ id }: { id: string }) {
       return;
     }
 
-    // 3. Execução da exclusão
+    
     try {
         const token = localStorage.getItem("token");
-
-        // Usando api.delete como no seu código anterior, assumindo que api é injetado/importado
         await api.delete(`/loja/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         
         alert(`Loja "${loja.nome}" excluída com sucesso!`);
-        router.push(`/perfil/${user.id}`); // Redireciona para o perfil do usuário após a exclusão
+        router.push(`/perfil/${user.id}`); 
+        onClose(); 
 
     } catch (error) {
         console.error("Erro ao excluir loja:", error);
         alert("Erro ao excluir a loja. Verifique sua permissão.");
     }
-  }, [loja, user, id, router]);
+  }, [loja, user, id, router, onClose]);
 
 
   if (!loja) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl text-gray-500">Carregando...</h1>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+        <div className="p-8 bg-white rounded-xl shadow-2xl">
+          <h1 className="text-xl text-gray-500">Carregando dados da loja...</h1>
+        </div>
       </div>
     );
   }
 
-  // Verificar se o usuário logado é o dono da loja (Segurança básica de UI)
+ 
   const isDono = user && loja && user.id === loja.donoId;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 flex justify-center">
-      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl">
+    
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] overflow-y-auto py-10 px-6">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl my-auto relative">
+        
         <div className="flex justify-between items-center mb-10 border-b pb-4">
-          <h1 className="text-3xl font-bold text-black">Editar Loja: {loja.nome}</h1>
+          <h1 className="text-3xl font-bold text-black text-left">Editar Loja: {loja.nome}</h1>
 
+          {/* BOTÃO DE FECHAR */}
           <button
-            onClick={() => router.push(`/loja/${id}`)}
-            className="text-gray-500 hover:text-gray-900 transition"
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-900 transition p-1.5 rounded-full hover:bg-gray-100"
           >
             <svg
               className="w-8 h-8"
@@ -278,22 +290,23 @@ export default function EditarLojaClient({ id }: { id: string }) {
         
         {/* Aviso de permissão */}
         {!isDono && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 text-left" role="alert">
                 <p className="font-bold">Acesso Negado</p>
                 <p className="text-sm">Você não é o proprietário desta loja e só pode visualizar os dados.</p>
             </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8" /* Desativa o formulário se não for o dono */>
+        {/* FORMULÁRIO */}
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* LADO ESQUERDO: Detalhes da Loja */}
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-gray-800 text-left">
                 Detalhes da Loja
               </h2>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                   Nome da Loja
                 </label>
                 <input
@@ -303,12 +316,12 @@ export default function EditarLojaClient({ id }: { id: string }) {
                   onChange={(e) => setNome(e.target.value)}
                   className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
                   required
-                  disabled={!isDono} // Desabilita edição para não-donos
+                  disabled={!isDono}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                   Categoria Principal
                 </label>
                 <select
@@ -318,7 +331,7 @@ export default function EditarLojaClient({ id }: { id: string }) {
                 onChange={(e) => setCategoriaId(Number(e.target.value))}
                 className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 bg-white cursor-pointer"
                 required
-                disabled={!isDono} // Desabilita edição para não-donos
+                disabled={!isDono}
                 >
                 <option value="" disabled>Selecione uma categoria</option>
 
@@ -335,7 +348,7 @@ export default function EditarLojaClient({ id }: { id: string }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                   Descrição
                 </label>
                 <textarea
@@ -344,14 +357,14 @@ export default function EditarLojaClient({ id }: { id: string }) {
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                   className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 resize-none"
-                  disabled={!isDono} // Desabilita edição para não-donos
+                  disabled={!isDono}
                 />
               </div>
             </div>
 
             {/* LADO DIREITO: Identidade Visual */}
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-gray-800 text-left">
                 Identidade Visual
               </h2>
 
@@ -360,7 +373,7 @@ export default function EditarLojaClient({ id }: { id: string }) {
                 <FileDropzone
                     label="Foto de perfil de sua loja"
                     onFileSelect={(file) => {
-                      if(isDono) { // Permite selecionar arquivo só se for dono
+                      if(isDono) { 
                         setFilePerfil(file);
                         setPreviewPerfil(file ? URL.createObjectURL(file) : null);
                       }

@@ -2,6 +2,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+
+interface CreateStoreModalProps {
+  onClose: () => void;
+  onSuccess: (newLojaId: number) => void;
+}
+
 const categoriaMap: Record<string, number> = {
   mercado: 1,
   farmacia: 2,
@@ -13,6 +19,7 @@ const categoriaMap: Record<string, number> = {
   jogos: 8,
   outros: 9,
 };
+
 
 interface FileDropzoneProps {
   label: string;
@@ -29,20 +36,44 @@ const FileDropzone = ({
   preview?: string | null;
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  
+  const handleClearFile = (e: React.MouseEvent) => {
+    e.stopPropagation(); 
+    onFileSelect(null);
+    if (inputRef.current) {
+        inputRef.current.value = ""; 
+    }
+  };
+
 
   return (
     <div
-      className="border-2 border-dashed border-cyan-400 bg-cyan-50 p-6 rounded-xl text-center cursor-pointer hover:bg-cyan-100 transition-colors h-full flex flex-col justify-center relative"
+      // Classes de cores alteradas para tons de cinza/neutro
+      className="border-2 border-dashed border-gray-300 bg-white p-6 rounded-xl text-center cursor-pointer hover:bg-gray-100 transition-colors h-full flex flex-col justify-center relative min-h-[150px]"
       onClick={() => inputRef.current?.click()}
     >
       {preview ? (
+        <>
         <img
           src={preview}
           alt="preview"
+          // Ocupa o espaço do container
           className="w-full h-full object-cover rounded-xl absolute inset-0"
         />
+        {/* Botão para remover a imagem */}
+        <button
+            type="button"
+            onClick={handleClearFile}
+            // Mantendo o botão de remoção em vermelho para clareza
+            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-80 hover:opacity-100 transition-opacity z-10 shadow-md"
+            title="Remover imagem"
+        >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        </>
       ) : (
         <div className="flex flex-col items-center space-y-2">
+          {/* Ícone usa a cor principal #325862 */}
           <svg
             className="w-10 h-10 text-[#325862]"
             fill="none"
@@ -56,6 +87,7 @@ const FileDropzone = ({
               d="M7 16a4 4 0 01-.884-7.884A5 5 0 0115 6a5 5 0 014.884 4.116A4 4 0 0120 16v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z"
             ></path>
           </svg>
+          {/* Texto usa a cor principal #325862 */}
           <p className="text-sm font-medium text-[#325862]">{label}</p>
         </div>
       )}
@@ -71,7 +103,7 @@ const FileDropzone = ({
   );
 };
 
-export default function CriarLojaPage() {
+export default function CreateStoreModal({ onClose, onSuccess }: CreateStoreModalProps) {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth();
 
@@ -91,9 +123,17 @@ export default function CriarLojaPage() {
   
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+      
       router.push("/login");
+      onClose(); 
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, router, onClose]);
+
+  useEffect(() => {
+    if (previewPerfil && previewPerfil.startsWith('blob:') && filePerfil === null) URL.revokeObjectURL(previewPerfil);
+    if (previewSticker && previewSticker.startsWith('blob:') && fileSticker === null) URL.revokeObjectURL(previewSticker);
+    if (previewBanner && previewBanner.startsWith('blob:') && fileBanner === null) URL.revokeObjectURL(previewBanner);
+  }, [filePerfil, fileSticker, fileBanner, previewPerfil, previewSticker, previewBanner]);
 
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,14 +168,17 @@ export default function CriarLojaPage() {
       });
 
       if (!res.ok) {
-      const text = await res.text();
-      console.error("ERRO BRUTO:", text);
-      alert("Erro ao criar loja!");
-      return;
-    }
+        const text = await res.text();
+        console.error("ERRO BRUTO:", text);
+        alert("Erro ao criar loja!");
+        return;
+      }
 
+      const newLojaData = await res.json();
       alert("Loja criada com sucesso!");
-      router.push(`/perfil/${user.id}`);
+      
+      onSuccess(newLojaData.id); 
+
     } catch (error) {
       console.error(error);
       alert("Erro ao conectar ao servidor.");
@@ -143,21 +186,26 @@ export default function CriarLojaPage() {
   };
 
   if (loading || !isAuthenticated) {
+    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl text-gray-500">Verificando autenticação...</h1>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+        <div className="p-8 bg-white rounded-xl shadow-2xl">
+          <h1 className="text-xl text-gray-700">Verificando autenticação...</h1>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 flex justify-center">
-      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl">
+    
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] overflow-y-auto py-10 px-6">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl my-auto relative">
         <div className="flex justify-between items-center mb-10 border-b pb-4">
           <h1 className="text-3xl font-bold text-black">Adicionar Loja</h1>
 
+          {/* BOTÃO DE FECHAR */}
           <button
-            onClick={() => router.push(`/perfil/${user?.id}`)}
+            onClick={onClose} 
             className="text-gray-500 hover:text-gray-900 transition"
           >
             <svg

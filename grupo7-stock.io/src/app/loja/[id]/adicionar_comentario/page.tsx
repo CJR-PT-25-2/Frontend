@@ -45,12 +45,12 @@ export default function AdicionarComentarioPage() {
 
     try {
       const payload = {
-        produto_id: Number(id),
+        loja_id: Number(id),
         nota: rating,
         comentario: comment,
       };
 
-      const res = await fetch(`${API_URL}/avaliacao-produto`, {
+      const res = await fetch(`${API_URL}/avaliacao-loja`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +60,7 @@ export default function AdicionarComentarioPage() {
       });
 
       if (res.ok) {
-        router.push(`/produto/${id}`);
+        router.push(`/loja/${id}`);
         router.refresh();
       } else {
         const errorData = await res.json();
@@ -87,13 +87,13 @@ export default function AdicionarComentarioPage() {
             className="flex items-center text-black hover:opacity-70 transition mb-6 group font-semibold"
           >
             <ChevronLeft className="mr-1 group-hover:-translate-x-1 transition-transform" />
-            Voltar para a página do Produto
+            Voltar para a loja
           </button>
 
           {/* Card Branco Arredondado */}
           <div className="bg-white p-8 rounded-3xl shadow-lg">
             <h1 className="text-3xl font-bold mb-2 text-center text-black">
-              Avaliar Produto
+              Avaliar Loja
             </h1>
             <p className="text-gray-500 text-center mb-8">
               Conte para nós o que achou da sua experiência.
