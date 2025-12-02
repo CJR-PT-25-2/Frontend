@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation"; 
-import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api"; // Importando o módulo API para exclusão
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation"; 
+
+
+interface AddProductModalProps {
+    lojaId: string; 
+    onClose: () => void;
+    onSuccess: (newProduto: any) => void;
+}
 
 const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
   Mercado: [
-    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açogue", "Mercearia", "Outros",
+    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açougue", "Mercearia", "Outros",
   ],
   Farmacia: [
     "Medicamentos", "Higiene", "Cosméticos", "Outros",
@@ -28,18 +33,14 @@ const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
     "Celulares", "Notebooks", "TVs", "Acessórios", "Outros",
   ],
   Jogos: [
-    "Eletrônicos", "Tabuleiro", "Outros",
+    "Consoles e Eletrônicos", "Tabuleiro", "Outros",
   ],
   Outros: [
     "Diversos",
   ],
 };
 
-const normalizeKey = (name: string) => 
-    name
-        .normalize("NFD") 
-        .replace(/[\u0300-\u036f]/g, "") 
-        .replace(/\s/g, '');
+
 
 const FileDropzone = ({
   label,
@@ -111,240 +112,169 @@ const FileDropzone = ({
   );
 };
 
-// Interface do Produto (melhorada para incluir dados de permissão)
-interface ProdutoData {
-    id: number;
-    nome: string;
-    preco: string;
-    estoque: string;
-    descricao: string;
-    // Assumindo que a API retorna Loja.id e o dono para permissão
-    Loja: {
-        id: number;
-        donoId: number; // Supondo que o produto herda o donoId da loja
-    };
-    Categoria: {
-        nome: string;
-    };
-    imagem1_url?: string;
-    imagem2_url?: string;
-    imagem3_url?: string;
-    imagem4_url?: string;
-}
 
-
-export default function EditarProdutoClient() {
-  const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : null; 
-  const router = useRouter();
-  const { user } = useAuth();
+export default function AddProductModal({ lojaId, onClose, onSuccess }: AddProductModalProps) {
+  const router = useRouter(); 
   
-  const [produto, setProduto] = useState<ProdutoData | null>(null);
-  const [lojaId, setLojaId] = useState<string | null>(null);
+  
+  const id = lojaId; 
 
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [subcategoriaNome, setSubcategoriaNome] = useState(""); 
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
-  
- 
   const [files, setFiles] = useState<Array<File | null>>([null, null, null, null]);
   const [previews, setPreviews] = useState<Array<string | null>>([null, null, null, null]);
-
-  
   const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<string[]>([]);
   const [categoriaPaiNome, setCategoriaPaiNome] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  
+
   const handleFileSelect = (index: number, newFile: File | null) => {
     const newFiles = [...files];
     newFiles[index] = newFile;
     setFiles(newFiles);
 
     const newPreviews = [...previews];
-    newPreviews[index] = newFile ? URL.createObjectURL(newFile) : (previews[index] || null); // Mantém o preview se for URL existente
+    
+    
+    if (previews[index] && previews[index]!.startsWith('blob:')) URL.revokeObjectURL(previews[index]!);
+
+    newPreviews[index] = newFile ? URL.createObjectURL(newFile) : null;
     setPreviews(newPreviews);
   };
+
   
- 
   useEffect(() => {
     if (!id) return;
     
     async function fetchData() {
       try {
-        
-        const produtoRes = await fetch(`http://localhost:3001/produto/${id}`);
-        if (!produtoRes.ok) {
-            throw new Error("Produto não encontrado ou erro na API.");
+        const lojaRes = await fetch(`http://localhost:3001/loja/${id}`);
+        if (!lojaRes.ok) {
+            throw new Error("Loja não encontrada ou erro na API.");
         }
-        const produtoData: ProdutoData = await produtoRes.json();
-        setProduto(produtoData); // Salva o produto inteiro para checar o donoId
-        
-        
-        setNome(produtoData.nome);
-        setPreco(String(produtoData.preco));
-        setEstoque(String(produtoData.estoque));
-        setDescricao(produtoData.descricao);
-        setSubcategoriaNome(produtoData.Categoria.nome);
-        setLojaId(String(produtoData.Loja.id));
-        
-        
-        const currentUrls = [
-            produtoData.imagem1_url,
-            produtoData.imagem2_url,
-            produtoData.imagem3_url,
-            produtoData.imagem4_url,
-        ];
-        
-        setPreviews(currentUrls.map(url => url ? `http://localhost:3001${url}` : null));
-        
-        
-        const lojaRes = await fetch(`http://localhost:3001/loja/${produtoData.Loja.id}`);
         const lojaData = await lojaRes.json();
-        const categoriaNomeOriginal = lojaData.categoriaNome; // Ex: "Farmácia"
+        let categoriaNomeAPI = lojaData.categoria.nome; 
 
-        if (!categoriaNomeOriginal) {
-            throw new Error("Categoria principal da loja não definida.");
+        if (!categoriaNomeAPI) {
+            throw new Error("Categoria principal da loja não definida. Verifique o findOne no LojaService.");
         }
-        
-        const categoriaChaveNormalizada = normalizeKey(categoriaNomeOriginal);
 
-        const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChaveNormalizada as keyof typeof CATEGORIAS_SUBCATEGORIAS];
+
+        const normalizeName = (name: string) => 
+            name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, ''); 
+
+
+        const categoriaChave = normalizeName(categoriaNomeAPI); 
+        const nomeExibicao = categoriaNomeAPI;
+
+        const lista = CATEGORIAS_SUBCATEGORIAS[categoriaChave as keyof typeof CATEGORIAS_SUBCATEGORIAS];
         
         if (lista) {
-          setSubcategoriasDisponiveis(lista);
-         
-          setCategoriaPaiNome(categoriaChaveNormalizada); 
-        } else {
-          
-          setError(`Nenhuma subcategoria mapeada para a categoria: ${categoriaChaveNormalizada}`);
+        setSubcategoriasDisponiveis(lista);
+        setCategoriaPaiNome(nomeExibicao); 
+      }
+        else {
+          setError(`Nenhuma subcategoria mapeada para a categoria: ${categoriaNomeAPI}`);
         }
         
       } catch (err: any) {
         console.error("Erro no carregamento:", err);
-        setError(err.message || "Não foi possível carregar os dados para edição.");
+        setError(err.message || "Não foi possível carregar as opções de subcategoria.");
+        
+        onClose(); 
       } finally {
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [id]);
+  }, [id, onClose]); 
+
   
-  // Função para lidar com a submissão do formulário (PATCH)
+  useEffect(() => {
+    return () => {
+        previews.forEach(url => {
+            if (url && url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        });
+    };
+  }, [previews]);
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!produto || !isDono) {
-        alert("Acesso negado ou dados incompletos.");
+    if (!subcategoriaNome) {
+        alert("Por favor, selecione uma subcategoria.");
         return;
     }
-    if (!subcategoriaNome || !categoriaPaiNome) {
-        alert("Dados de categoria incompletos.");
+    if (!categoriaPaiNome) {
+        alert("Erro interno: Categoria da loja não identificada.");
         return;
     }
-    
-   
+    if (!files[0]) {
+        alert("A foto principal (Foto 1) é obrigatória.");
+        return;
+    }
+
+
     const form = new FormData();
     form.append("nome", nome);
     form.append("preco", preco); 
     form.append("estoque", estoque);
+    form.append("loja_id", String(id)); 
     form.append("descricao", descricao);
-    
     
     form.append("subcategoria", subcategoriaNome); 
     form.append("categoriaPai", categoriaPaiNome);
     
-    
     files.forEach((file, index) => {
         if (file) {
-            
             form.append(`imagem${index + 1}`, file);
-        } else if (previews[index] === null && produto![`imagem${index + 1}_url` as keyof ProdutoData]) {
-            // Se o preview está nulo (foi removido), e existia uma URL no produto original, envia a flag de remoção
-            form.append(`remove_imagem${index + 1}`, 'true'); 
         }
     });
 
     try {
-        
-        const token = localStorage.getItem("token"); // Necessário para autenticação
-        const res = await fetch(`http://localhost:3001/produto/${id}`, {
-            method: "PATCH",
+        const res = await fetch(`http://localhost:3001/produto`, {
+            method: "POST",
             body: form,
-             headers: { 
-                ...(token && { Authorization: `Bearer ${token}` })
-            }
         });
 
         if (!res.ok) {
             const text = await res.text();
             console.error("ERRO BRUTO:", text);
-            alert("Erro ao editar produto! Verifique o console.");
+            alert("Erro ao criar produto! Verifique o console.");
             return;
         }
 
-        alert("Produto editado com sucesso!");
-       
-        router.push(`/loja/${lojaId}`); // Redireciona para a página da loja após edição 
+        const newProduto = await res.json();
+        alert("Produto criado com sucesso!");
+        
+        onSuccess(newProduto); 
     } catch (error) {
         console.error(error);
         alert("Erro ao conectar ao servidor.");
     }
   };
 
-
-  // NOVA FUNÇÃO DE EXCLUSÃO DE PRODUTO
-  const excluirProduto = useCallback(async () => {
-    // 1. Verificação preliminar de permissão
-    if (!produto || !user || user.id !== produto.Loja.donoId) {
-        alert("Erro: Você não tem permissão para excluir este produto.");
-        return;
-    }
-
-    const confirmado = window.confirm(
-        `Tem certeza que deseja excluir o produto "${produto.nome}"? Esta ação é irreversível.`
-    );
-    if (!confirmado) return;
-
-    // 2. Execução da exclusão
-    try {
-        const token = localStorage.getItem("token");
-
-        // Chamada API para deletar o produto
-        await api.delete(`/produto/${produto.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        
-        alert(`Produto "${produto.nome}" excluído com sucesso!`);
-        
-        // Redireciona para a página da loja após exclusão
-        router.push(`/loja/${lojaId}`);
-        
-    } catch (error) {
-        console.error("Erro ao excluir produto:", error);
-        alert("Erro ao excluir o produto. Verifique sua permissão.");
-    }
-  }, [produto, lojaId, user, router]);
-
-
-  // Verifica se o usuário logado é o dono da loja (que é o dono do produto)
-  const isDono = user && produto && produto.Loja && user.id === produto.Loja.donoId;
-
-
+  
   if (loading || !id) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl text-gray-500">Carregando dados do produto...</h1>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+        <h1 className="text-xl text-gray-200 p-8 bg-black rounded-lg shadow-xl">Carregando categorias da loja...</h1>
       </div>
     );
   }
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-[1000]">
         <div className="p-8 bg-white rounded-lg shadow-xl text-center">
-            <h1 className="text-2xl text-red-600 mb-4">❌ Erro de Carregamento</h1>
+            <h1 className="text-2xl text-red-600 mb-4">Erro de Carregamento</h1>
             <p className="text-gray-700">{error}</p>
         </div>
       </div>
@@ -353,15 +283,16 @@ export default function EditarProdutoClient() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 flex justify-center">
-      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl">
+    
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] overflow-y-auto py-10 px-6">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl my-auto relative">
         
         {/* CABEÇALHO */}
         <div className="flex justify-between items-center mb-10 border-b pb-4">
-          <h1 className="text-3xl font-bold text-black">Editar Produto: {nome}</h1>
+          <h1 className="text-3xl font-bold text-black text-left">Adicionar Novo Produto</h1>
 
           <button
-            onClick={() => router.push(`/loja/${lojaId}`)} // Volta para a página da loja, se existir
+            onClick={onClose} 
             className="text-gray-500 hover:text-gray-900 transition"
           >
             <svg
@@ -379,15 +310,6 @@ export default function EditarProdutoClient() {
             </svg>
           </button>
         </div>
-        
-        {/* Aviso de permissão */}
-        {!isDono && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-                <p className="font-bold">Acesso Negado</p>
-                <p className="text-sm">Você não é o proprietário deste produto e só pode visualizar os dados.</p>
-            </div>
-        )}
-
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -408,9 +330,8 @@ export default function EditarProdutoClient() {
                   placeholder="Ex: Tênis Runner Pro"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
+                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
                   required
-                  disabled={!isDono}
                 />
               </div>
 
@@ -422,9 +343,8 @@ export default function EditarProdutoClient() {
                 <select
                   value={subcategoriaNome}
                   onChange={(e) => setSubcategoriaNome(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 bg-white cursor-pointer"
+                  className="w-full p-3 border-0 rounded-xl shadow-md appearance-none focus:ring-2 focus:ring-green-500 text-lg text-gray-800 bg-white cursor-pointer"
                   required
-                  disabled={!isDono}
                 >
                   <option value="" disabled>Selecione a Subcategoria</option>
                   {subcategoriasDisponiveis.map((nome) => (
@@ -435,7 +355,7 @@ export default function EditarProdutoClient() {
                 </select>
               </div>
 
-              {/* Preço e Estoque */}
+              {/* Preço e Estoque em GRID */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Preço */}
                 <div>
@@ -447,9 +367,8 @@ export default function EditarProdutoClient() {
                         placeholder="0.00"
                         value={preco}
                         onChange={(e) => setPreco(e.target.value)}
-                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
+                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
                         required
-                        disabled={!isDono}
                     />
                 </div>
 
@@ -463,9 +382,8 @@ export default function EditarProdutoClient() {
                         placeholder="Quantidade"
                         value={estoque}
                         onChange={(e) => setEstoque(e.target.value)}
-                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800"
+                        className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800"
                         required
-                        disabled={!isDono}
                     />
                 </div>
               </div>
@@ -481,8 +399,7 @@ export default function EditarProdutoClient() {
                   placeholder="Detalhes, materiais, usos, etc."
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 text-lg text-gray-800 resize-none"
-                  disabled={!isDono}
+                  className="w-full p-3 border-0 rounded-xl shadow-md focus:ring-2 focus:ring-green-500 text-lg text-gray-800 resize-none"
                 />
               </div>
 
@@ -494,12 +411,13 @@ export default function EditarProdutoClient() {
                 Mídia e Imagens (Máx. 4)
               </h2>
 
+              {/* Mapeamento para exibir 4 dropzones */}
               <div className="grid grid-cols-2 gap-4">
                 {Array(4).fill(0).map((_, index) => (
                   <FileDropzone
                       key={index}
                       label={index === 0 ? "Foto 1 (Principal)" : `Foto ${index + 1}`}
-                      onFileSelect={(file) => { if(isDono) handleFileSelect(index, file); }}
+                      onFileSelect={(file) => handleFileSelect(index, file)}
                       preview={previews[index]}
                     />
                 ))}
@@ -507,28 +425,13 @@ export default function EditarProdutoClient() {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-            
-            {/* BOTÃO DE EXCLUSÃO DE PRODUTO */}
-            {isDono && (
-                <button
-                    type="button"
-                    onClick={excluirProduto}
-                    className="w-full md:w-auto bg-red-100 text-red-600 text-lg font-semibold py-3 px-6 rounded-xl shadow-md border border-red-300 hover:bg-red-200 transition"
-                >
-                    Excluir Produto
-                </button>
-            )}
-
-            {/* BOTão DE SALVAR ALTERAÇÕES */}
+          {/* Botão de Criação */}
+          <div className="pt-8 border-t border-gray-200">
             <button
               type="submit"
-              className={`w-full md:w-auto text-xl font-semibold py-4 px-12 rounded-xl shadow-lg transition
-                ${isDono ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-300 text-gray-600 cursor-not-allowed"}
-              `}
-              disabled={!isDono}
+              className="w-full bg-[#325862] text-white text-xl font-semibold py-4 rounded-xl shadow-lg hover:bg-[#2b4c53] transition"
             >
-              Salvar Alterações
+              Criar Produto
             </button>
           </div>
         </form>

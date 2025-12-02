@@ -5,28 +5,31 @@ import { useRouter, useParams } from "next/navigation";
 
 const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
   Mercado: [
-    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açougue", "Mercearia",
+    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açougue", "Mercearia", "Outros",
   ],
   Farmacia: [
-    "Medicamentos", "Higiene", "Cosméticos", 
+    "Medicamentos", "Higiene", "Cosméticos", "Outros",
   ],
   Beleza: [
-    "Skincare", "Maquiagem", "Cabelo", "Corpo",
+    "Skincare", "Maquiagem", "Cabelo", "Corpo", "Outros",
   ],
   Brinquedo: [
-    "Boneca", "Carrinho", "Legos", "Pelúcia",
+    "Boneca", "Carrinho", "Legos", "Pelúcia", "Outros",
   ],
   Moda: [
-    "Vestido", "Blusa", "Calça", "Sapato",
+    "Vestido", "Blusa", "Calça", "Sapato", "Outros",
   ],
   Casa: [
-    "Cozinha", "Sala", "Quarto", "Banheiro",
+    "Cozinha", "Sala", "Quarto", "Banheiro", "Outros",
   ],
   Eletronicos: [
-    "Celulares", "Notebooks", "TVs", "Acessórios",
+    "Celulares", "Notebooks", "TVs", "Acessórios", "Outros",
   ],
   Jogos: [
-    "Consoles e Eletrônicos", "Tabuleiro",
+    "Consoles e Eletrônicos", "Tabuleiro", "Outros",
+  ],
+  Outros: [
+    "Diversos",
   ],
 };
 

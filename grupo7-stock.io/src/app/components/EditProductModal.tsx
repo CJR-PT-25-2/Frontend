@@ -1,38 +1,21 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation"; 
+import { useRouter } from "next/navigation"; 
 import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api"; // Importando o módulo API para exclusão
+import api from "@/lib/api";
+
 
 const CATEGORIAS_SUBCATEGORIAS: Record<string, string[]> = {
-  Mercado: [
-    "Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açogue", "Mercearia", "Outros",
-  ],
-  Farmacia: [
-    "Medicamentos", "Higiene", "Cosméticos", "Outros",
-  ],
-  Beleza: [
-    "Skincare", "Maquiagem", "Cabelo", "Corpo", "Outros",
-  ],
-  Brinquedo: [
-    "Boneca", "Carrinho", "Legos", "Pelúcia", "Outros",
-  ],
-  Moda: [
-    "Vestido", "Blusa", "Calça", "Sapato", "Outros",
-  ],
-  Casa: [
-    "Cozinha", "Sala", "Quarto", "Banheiro", "Outros",
-  ],
-  Eletronicos: [
-    "Celulares", "Notebooks", "TVs", "Acessórios", "Outros",
-  ],
-  Jogos: [
-    "Eletrônicos", "Tabuleiro", "Outros",
-  ],
-  Outros: [
-    "Diversos",
-  ],
+  Mercado: ["Hortifruti", "Limpeza", "Padaria", "Adega", "Bebidas", "Açogue", "Mercearia", "Outros"],
+  Farmacia: ["Medicamentos", "Higiene", "Cosméticos", "Outros"],
+  Beleza: ["Skincare", "Maquiagem", "Cabelo", "Corpo", "Outros"],
+  Brinquedo: ["Boneca", "Carrinho", "Legos", "Pelúcia", "Outros"],
+  Moda: ["Vestido", "Blusa", "Calça", "Sapato", "Outros"],
+  Casa: ["Cozinha", "Sala", "Quarto", "Banheiro", "Outros"],
+  Eletronicos: ["Celulares", "Notebooks", "TVs", "Acessórios", "Outros"],
+  Jogos: ["Eletrônicos", "Tabuleiro", "Outros"],
+  Outros: ["Diversos"],
 };
 
 const normalizeKey = (name: string) => 
@@ -40,6 +23,7 @@ const normalizeKey = (name: string) =>
         .normalize("NFD") 
         .replace(/[\u0300-\u036f]/g, "") 
         .replace(/\s/g, '');
+
 
 const FileDropzone = ({
   label,
@@ -111,17 +95,16 @@ const FileDropzone = ({
   );
 };
 
-// Interface do Produto (melhorada para incluir dados de permissão)
+
 interface ProdutoData {
     id: number;
     nome: string;
     preco: string;
     estoque: string;
-    descricao: string;
-    // Assumindo que a API retorna Loja.id e o dono para permissão
+    descrição: string;
     Loja: {
         id: number;
-        donoId: number; // Supondo que o produto herda o donoId da loja
+        donoId: number;
     };
     Categoria: {
         nome: string;
@@ -133,9 +116,14 @@ interface ProdutoData {
 }
 
 
-export default function EditarProdutoClient() {
-  const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : null; 
+interface EditProductModalProps {
+    id: string; 
+    onClose: () => void;
+    onSaveSuccess: (produtoAtualizado: ProdutoData) => void;
+}
+
+
+export default function EditProductModal({ id, onClose, onSaveSuccess }: EditProductModalProps) {
   const router = useRouter();
   const { user } = useAuth();
   
@@ -147,12 +135,10 @@ export default function EditarProdutoClient() {
   const [subcategoriaNome, setSubcategoriaNome] = useState(""); 
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
-  
- 
+
   const [files, setFiles] = useState<Array<File | null>>([null, null, null, null]);
   const [previews, setPreviews] = useState<Array<string | null>>([null, null, null, null]);
 
-  
   const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<string[]>([]);
   const [categoriaPaiNome, setCategoriaPaiNome] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -165,7 +151,15 @@ export default function EditarProdutoClient() {
     setFiles(newFiles);
 
     const newPreviews = [...previews];
-    newPreviews[index] = newFile ? URL.createObjectURL(newFile) : (previews[index] || null); // Mantém o preview se for URL existente
+    newPreviews[index] = newFile 
+        ? URL.createObjectURL(newFile) 
+        : (previews[index] && previews[index]!.startsWith('blob:') ? null : previews[index]); 
+    
+    
+    if (previews[index] && previews[index]!.startsWith('blob:') && !newFile) {
+        URL.revokeObjectURL(previews[index]!);
+    }
+
     setPreviews(newPreviews);
   };
   
@@ -173,6 +167,9 @@ export default function EditarProdutoClient() {
   useEffect(() => {
     if (!id) return;
     
+    
+    let urlsToRevoke: string[] = [];
+
     async function fetchData() {
       try {
         
@@ -181,13 +178,15 @@ export default function EditarProdutoClient() {
             throw new Error("Produto não encontrado ou erro na API.");
         }
         const produtoData: ProdutoData = await produtoRes.json();
-        setProduto(produtoData); // Salva o produto inteiro para checar o donoId
+        setProduto(produtoData); 
         
+        console.log("Dados do Produto Recebidos:", produtoData);
+        console.log("Descrição Recebida:", produtoData.descrição);
         
         setNome(produtoData.nome);
         setPreco(String(produtoData.preco));
         setEstoque(String(produtoData.estoque));
-        setDescricao(produtoData.descricao);
+        setDescricao(produtoData.descrição || ""); 
         setSubcategoriaNome(produtoData.Categoria.nome);
         setLojaId(String(produtoData.Loja.id));
         
@@ -199,7 +198,8 @@ export default function EditarProdutoClient() {
             produtoData.imagem4_url,
         ];
         
-        setPreviews(currentUrls.map(url => url ? `http://localhost:3001${url}` : null));
+        const initialPreviews = currentUrls.map(url => url ? `http://localhost:3001${url}` : null);
+        setPreviews(initialPreviews);
         
         
         const lojaRes = await fetch(`http://localhost:3001/loja/${produtoData.Loja.id}`);
@@ -216,10 +216,8 @@ export default function EditarProdutoClient() {
         
         if (lista) {
           setSubcategoriasDisponiveis(lista);
-         
           setCategoriaPaiNome(categoriaChaveNormalizada); 
         } else {
-          
           setError(`Nenhuma subcategoria mapeada para a categoria: ${categoriaChaveNormalizada}`);
         }
         
@@ -232,9 +230,17 @@ export default function EditarProdutoClient() {
     }
 
     fetchData();
+
+    return () => {
+        previews.forEach(url => {
+            if (url && url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        });
+    };
   }, [id]);
   
-  // Função para lidar com a submissão do formulário (PATCH)
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -247,12 +253,11 @@ export default function EditarProdutoClient() {
         return;
     }
     
-   
     const form = new FormData();
     form.append("nome", nome);
     form.append("preco", preco); 
     form.append("estoque", estoque);
-    form.append("descricao", descricao);
+    form.append("descricao", descricao); 
     
     
     form.append("subcategoria", subcategoriaNome); 
@@ -264,14 +269,14 @@ export default function EditarProdutoClient() {
             
             form.append(`imagem${index + 1}`, file);
         } else if (previews[index] === null && produto![`imagem${index + 1}_url` as keyof ProdutoData]) {
-            // Se o preview está nulo (foi removido), e existia uma URL no produto original, envia a flag de remoção
+            
             form.append(`remove_imagem${index + 1}`, 'true'); 
         }
     });
 
     try {
         
-        const token = localStorage.getItem("token"); // Necessário para autenticação
+        const token = localStorage.getItem("token");
         const res = await fetch(`http://localhost:3001/produto/${id}`, {
             method: "PATCH",
             body: form,
@@ -287,9 +292,10 @@ export default function EditarProdutoClient() {
             return;
         }
 
+        const data: ProdutoData = await res.json();
         alert("Produto editado com sucesso!");
        
-        router.push(`/loja/${lojaId}`); // Redireciona para a página da loja após edição 
+        onSaveSuccess(data); 
     } catch (error) {
         console.error(error);
         alert("Erro ao conectar ao servidor.");
@@ -297,9 +303,7 @@ export default function EditarProdutoClient() {
   };
 
 
-  // NOVA FUNÇÃO DE EXCLUSÃO DE PRODUTO
   const excluirProduto = useCallback(async () => {
-    // 1. Verificação preliminar de permissão
     if (!produto || !user || user.id !== produto.Loja.donoId) {
         alert("Erro: Você não tem permissão para excluir este produto.");
         return;
@@ -310,59 +314,59 @@ export default function EditarProdutoClient() {
     );
     if (!confirmado) return;
 
-    // 2. Execução da exclusão
     try {
         const token = localStorage.getItem("token");
 
-        // Chamada API para deletar o produto
         await api.delete(`/produto/${produto.id}`, { headers: { Authorization: `Bearer ${token}` } });
         
         alert(`Produto "${produto.nome}" excluído com sucesso!`);
         
-        // Redireciona para a página da loja após exclusão
-        router.push(`/loja/${lojaId}`);
+        router.push(`/loja/${lojaId}`); 
+        onClose(); 
         
     } catch (error) {
         console.error("Erro ao excluir produto:", error);
         alert("Erro ao excluir o produto. Verifique sua permissão.");
     }
-  }, [produto, lojaId, user, router]);
+  }, [produto, lojaId, user, router, onClose]);
 
 
-  // Verifica se o usuário logado é o dono da loja (que é o dono do produto)
+  
   const isDono = user && produto && produto.Loja && user.id === produto.Loja.donoId;
 
 
   if (loading || !id) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl text-gray-500">Carregando dados do produto...</h1>
-      </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <h1 className="text-xl text-gray-200 p-8 bg-black rounded-lg shadow-xl">Carregando dados do produto...</h1>
+        </div>
     );
   }
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="p-8 bg-white rounded-lg shadow-xl text-center">
-            <h1 className="text-2xl text-red-600 mb-4">❌ Erro de Carregamento</h1>
-            <p className="text-gray-700">{error}</p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-[1000]">
+          <div className="p-8 bg-white rounded-lg shadow-xl text-center">
+              <h1 className="text-2xl text-red-600 mb-4">❌ Erro de Carregamento</h1>
+              <p className="text-gray-700">{error}</p>
+          </div>
         </div>
-      </div>
     );
   }
 
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 flex justify-center">
-      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl">
+    
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] overflow-y-auto py-10 px-6">
+      
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-5xl my-auto relative">
         
         {/* CABEÇALHO */}
         <div className="flex justify-between items-center mb-10 border-b pb-4">
-          <h1 className="text-3xl font-bold text-black">Editar Produto: {nome}</h1>
+          <h1 className="text-3xl font-bold text-black text-left">Editar Produto: {nome}</h1>
 
           <button
-            onClick={() => router.push(`/loja/${lojaId}`)} // Volta para a página da loja, se existir
-            className="text-gray-500 hover:text-gray-900 transition"
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-900 transition p-1.5 rounded-full hover:bg-gray-100"
           >
             <svg
               className="w-8 h-8"
@@ -382,14 +386,14 @@ export default function EditarProdutoClient() {
         
         {/* Aviso de permissão */}
         {!isDono && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 text-left" role="alert">
                 <p className="font-bold">Acesso Negado</p>
                 <p className="text-sm">Você não é o proprietário deste produto e só pode visualizar os dados.</p>
             </div>
         )}
 
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 text-left">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             
             {/* LADO ESQUERDO: DETALHES DO PRODUTO */}
