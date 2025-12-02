@@ -19,7 +19,7 @@ export default function Navbar(){
                         <button 
                         aria-label="feed"
                         className="p-2 rounded-full hover:scale-105 cursor-pointer "
-                        onClick={() => router.push('/home')}>
+                        onClick={() => router.push('/')}>
                             <img
                             className="h-10 w-auto"
                             src="/images/logo.png"
@@ -38,7 +38,17 @@ export default function Navbar(){
 
                     {isAuthenticated ? (
                         <div>
-                            <button className="mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105">
+                            <button className="mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105"                            onClick={() => {
+                                    // 1. Verifica se o usuário e o ID existem
+                                    if (user && user.id) {
+                                        // 2. Navega para a rota dinâmica: /perfil/ID_DO_USUÁRIO
+                                        router.push(`/perfil/${user.id}`);
+                                    } else {
+                                        // Se autenticado, mas o ID falhou (caso raro), pode redirecionar para home
+                                        router.push('/home'); 
+                                    }
+                                }}
+                                >
                             <IoMdPerson size={30} />
                         </button>
 
