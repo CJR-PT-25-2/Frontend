@@ -118,6 +118,7 @@ export default function Home() {
             const res = await api.get("/loja");
             setLojasOriginais(res.data);
             setLojasFiltradas(res.data);
+            setLoading(false);
         };
         load();
     }, []);
@@ -125,7 +126,7 @@ export default function Home() {
 
     const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => (
         <div className="pt-5">
-            <h1 className="text-xl font-bold mb-4">{titulo}</h1>
+            <h1 className="text-xl text-black font-bold mb-4">{titulo}</h1>
 
             {loading ? (
                 <p>Carregando...</p>
@@ -202,7 +203,7 @@ export default function Home() {
 
                 {isSearching ? (
                     <>
-                        <h1 className="text-2xl font-bold pt-3">Resultados</h1>
+                        <h1 className="text-2xl font-bold text-black pt-3">Resultados</h1>
 
                         {renderProdutos("Produtos Encontrados", produtosFiltrados)}
 
@@ -210,59 +211,59 @@ export default function Home() {
                         {renderLojas(lojasFiltradas)}
 
                         {produtosFiltrados.length === 0 && lojasFiltradas.length === 0 && (
-                            <h1 className="text-xl font-bold pt-5">Nenhum resultado encontrado.</h1>
+                            <h1 className="text-xl text-black font-bold pt-5">Nenhum resultado encontrado.</h1>
                         )}
                     </>
                 ) : (
                 <>
-                    <h1> Categorias </h1>
+                    <h1 className="text-black font-bold text-xl"> Categorias </h1>
 
                     <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
                         <button onClick={() => router.push('../categoria_especifica/mercado')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Mercado</p>
+                            <p className="text-sm text-center text-black mt-1">Mercado</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/remedio')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Remédios</p>
+                            <p className="text-sm text-center text-black  mt-1">Remédios</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Cosméticos</p>
+                            <p className="text-sm text-center text-black mt-1">Cosméticos</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/moda')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Moda</p>
+                            <p className="text-sm text-center text-black mt-1">Moda</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Eletrônicos</p>
+                            <p className="text-sm text-center text-black mt-1">Eletrônicos</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/jogos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Jogos</p>
+                            <p className="text-sm text-center text-black mt-1">Jogos</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Brinquedos</p>
+                            <p className="text-sm text-center text-black mt-1">Brinquedos</p>
                         </button>
 
                         <button onClick={() => router.push('../categoria_especifica/casa')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center mt-1">Casa</p>
+                            <p className="text-sm text-center text-black mt-1">Casa</p>
                         </button>
                     </div>
 
                     {renderProdutos("Produtos de Jogos", produtosJogos)}
                     {renderProdutos("Produtos de Casa", produtosCasa)}
 
-                    <h1 className="pt-10">Lojas</h1>
+                    <h1 className="pt-10 text-black text-xl font-bold ">Lojas</h1>
                     {renderLojas(lojasOriginais)}
                 </>
                 )}

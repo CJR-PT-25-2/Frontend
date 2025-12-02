@@ -1,17 +1,22 @@
 'use client';
 
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { IoBag } from "react-icons/io5";
 import { FaStore } from "react-icons/fa";
 import { IoMdPerson } from "react-icons/io";
 import { IoMdExit } from "react-icons/io";
 
+
+
+
 export default function Navbar(){
     const {isAuthenticated,user,logout} = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     
+
 
     return(
         <header>
@@ -27,11 +32,13 @@ export default function Navbar(){
                         />
                         </button>   
                 <div className="justify-between flex items-center pr-10">
-                    <button className="mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105">
+                    <button className={`mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105 ${
+                            pathname === '/pag_produtos' ? 'text-[#d6993c]' : ''
+                             }`}    onClick={() => router.push('/pag_produtos')}>
                         <IoBag size={30}/>
 
                     </button>
-                     <button className="mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105">
+                     <button className={`mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105 ${pathname === '/pagina_lojas' ? 'text-[#d6993c]' : '' }`}   onClick={() => router.push('/pagina_lojas')}>
                          <FaStore size={28} />
 
                     </button>
@@ -67,7 +74,7 @@ export default function Navbar(){
                         </button> 
                         <button 
                         className="mr-6 w-30 cursor-pointer hover:text-[#d6993c] bg-[#325862] rounded-full hover:scale-105 "
-                        onClick={() => router.push('/login')}>
+                        onClick={() => router.push('/register')}>
                             Cadastre-se
                         </button> 
                         </div>
