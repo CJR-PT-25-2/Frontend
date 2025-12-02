@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
-
+import BarraPesquisa from "@/app/components/barra_pesquisa";
 interface Produto {
     id: number;
     nome: string;
@@ -46,6 +46,7 @@ export default function FeedPage() {
         setProdutos(filtrados);
     };
 
+
     const getImagemProduto = (p: Produto) => {
         return (
             p.Imagems_produto_URL ??
@@ -71,14 +72,20 @@ export default function FeedPage() {
                 </div>
 
                 <div className="h-full relative ml-10">
-                    <img
-                        src="/images/Mascote1.png" alt="Mascote" className="w-140 h-140 object-contain"
-                    />
+                    <img src="/images/Mascote1.png" alt="Mascote" className="w-140 h-140 object-contain" />
                 </div>
 
             </div>
 
             <div className="relative z-10 bg-[#F6F3E4] h-300 pl-10 pt-10">
+                <div className="flex items-center justify-end pr-5 pb-5">
+                    <BarraPesquisa
+                        dadosOriginais={produtosOriginais}
+                        setDadosFiltrados={setProdutos}
+                        chave="nome"
+                        placeholder="Buscar produtos..."
+                    />
+                </div>
 
                 <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
                     <button

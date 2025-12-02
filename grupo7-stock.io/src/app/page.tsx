@@ -10,13 +10,12 @@ import { FaLaptop } from "react-icons/fa";
 import { IoGameControllerSharp } from "react-icons/io5";
 import { TbHorseToy } from "react-icons/tb";
 import { FaHouseChimneyWindow } from "react-icons/fa6";
-import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../app/components/caixinha_produto";
 import Sticker_loja from "./components/sticker_loja";
 import api from "@/lib/api";
-
+import BarraPesquisa from "./components/barra_pesquisa";
 
 type ProdutoParacard = {
     id: number;
@@ -26,6 +25,7 @@ type ProdutoParacard = {
     estoque: number;
     Loja: {
       sticker_url : string;
+      nome: string;
     }
 }
 
@@ -39,77 +39,109 @@ type LojaParacard = {
 }
 
 const Categoria_id_Casa = 1;
-const Categoria_id_Jogos = 38; 
+const Categoria_id_Jogos = 38;
 
 export default function Home() {
 
     const router = useRouter();
+
     const [produtosCasa, setProdutosCasa] = useState<ProdutoParacard[]>([]);
     const [produtosJogos, setProdutosJogos] = useState<ProdutoParacard[]>([]);
-    const [Lojas, setLojas] = useState<LojaParacard[]>([]);
+    const [todosProdutos, setTodosProdutos] = useState<ProdutoParacard[]>([]);
+
+    const [lojasOriginais, setLojasOriginais] = useState<LojaParacard[]>([]);
+
+    const [produtosFiltrados, setProdutosFiltrados] = useState<ProdutoParacard[]>([]);
+    const [lojasFiltradas, setLojasFiltradas] = useState<LojaParacard[]>([]);
+
+    const [isSearching, setIsSearching] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    const fetchProdutosPorCategoriaPai = async (id: number, setFunction: React.Dispatch<React.SetStateAction<ProdutoParacard[]>>, categoriaNome: string) => {
-        try {
-          const response = await api.get(`/produto/categoria_pai/${id}`); 
-            setFunction(response.data);
-        } catch (err) {
-          console.error(`Erro ao buscar produtos da categoria ${categoriaNome}:`, err);
-          setError(`Erro ao buscar produtos da categoria ${categoriaNome}`);
-        }
-      };
+    const pegarValorAninhado = (obj: any, caminho: string) =>
+        caminho.split(".").reduce((acc, key) => acc?.[key], obj);
 
-    const fetchLojas = async () => {
-        try {
-          const response = await api.get('/loja');
-            setLojas(response.data);
-        } catch (err) {
-          console.error('Erro ao buscar lojas:', err);
-          setError('Erro ao buscar lojas');
+    const handleUniversalSearch = (termo: string) => {
+
+        const t = termo.toLowerCase();
+
+        if (t.length === 0) {
+            setIsSearching(false);
+            setProdutosFiltrados(todosProdutos);
+            setLojasFiltradas(lojasOriginais);
+            return;
         }
-      };
+
+        setIsSearching(true);
+
+        const chavesProduto = ["nome", "Loja.nome"];
+        const filtradosProdutos = todosProdutos.filter(p =>
+            chavesProduto.some(ch => {
+                const valor = pegarValorAninhado(p, ch);
+                return String(valor ?? "").toLowerCase().includes(t);
+            })
+        );
+
+        const chavesLoja = ["nome", "categoria.nome"];
+        const filtradasLojas = lojasOriginais.filter(l =>
+            chavesLoja.some(ch => {
+                const valor = pegarValorAninhado(l, ch);
+                return String(valor ?? "").toLowerCase().includes(t);
+            })
+        );
+
+        setProdutosFiltrados(filtradosProdutos);
+        setLojasFiltradas(filtradasLojas);
+    };
+
 
     useEffect(() => {
-        const loadprodutos = async () => {
+        const load = async () => {
             setLoading(true);
-            await fetchProdutosPorCategoriaPai(Categoria_id_Casa, setProdutosCasa, "Casa");
-            await fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "jogos");
-          setLoading(false);
+
+            const res1 = await api.get(`/produto/categoria_pai/${Categoria_id_Casa}`);
+            const res2 = await api.get(`/produto/categoria_pai/${Categoria_id_Jogos}`);
+
+            const todos = [...res1.data, ...res2.data];
+
+            setProdutosCasa(res1.data);
+            setProdutosJogos(res2.data);
+            setTodosProdutos(todos);
+            setProdutosFiltrados(todos);
+
+            setLoading(false);
         };
-        loadprodutos();
-    } , []);
+        load();
+    }, []);
 
     useEffect(() => {
-        const loadLojas = async () => {
-            setLoading(true);
-            await fetchLojas();
-            setLoading(false);
-            await fetchLojas();
-            setLoading(false);
+        const load = async () => {
+            const res = await api.get("/loja");
+            setLojasOriginais(res.data);
+            setLojasFiltradas(res.data);
         };
-        loadLojas();
-    } , []);
+        load();
+    }, []);
 
-    const renderProdutos = (titulo: string, produtos: ProdutoParacard[]) => (
+
+    const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => (
         <div className="pt-5">
             <h1 className="text-xl font-bold mb-4">{titulo}</h1>
+
             {loading ? (
-                <p>Carregando produtos...</p>
-            ) : produtos.length === 0 ? (
-                <p>Nenhum produto de {titulo} encontrado.</p>
+                <p>Carregando...</p>
+            ) : lista.length === 0 ? (
+                <p>Nenhum item encontrado.</p>
             ) : (
                 <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-4">
-                    {produtos.map((produto) => (
-                        <Caixa_prod 
+                    {lista.map(produto => (
+                        <Caixa_prod
                             key={produto.id}
                             id={produto.id}
                             nome={produto.nome}
-                            preco={produto.preco}     
-                            imagemUrl={produto.Imagems_produto_URL} 
-                            quantidade ={produto.estoque}
-                            // Adicionamos LojaURL usando o sticker_url se existir
-                            lojaURL={produto.Loja?.sticker_url} 
+                            preco={produto.preco}
+                            imagemUrl={produto.Imagems_produto_URL}
+                            quantidade={produto.estoque}
+                            lojaURL={produto.Loja?.sticker_url}
                             disponivel={produto.estoque > 0}
                         />
                     ))}
@@ -117,125 +149,125 @@ export default function Home() {
             )}
         </div>
     );
-    
-      const renderLojas = () => (
-            loading? (
-              <p>Carregando lojas...</p>
-            ) : Lojas.length === 0 ? (
-              <p>Nenhuma loja encontrada.</p>
-            ) : (
-              <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
-                  {Lojas.map((loja) => (
-                      <Sticker_loja  
-                          key={loja.id}
-                          id = {loja.id}
-                          nome = {String(loja.nome)}
-                          categoria= {String(loja.categoria?.nome || "")}
-                          descricao = {""}
-                          sticker_URL={loja.sticker_url}
-                    />    
+
+
+    const renderLojas = (lista: LojaParacard[]) => (
+        loading ? (
+            <p>Carregando lojas...</p>
+        ) : lista.length === 0 ? (
+            <p>Nenhuma loja encontrada.</p>
+        ) : (
+            <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
+                {lista.map(loja => (
+                    <Sticker_loja
+                        key={loja.id}
+                        id={loja.id}
+                        nome={String(loja.nome)}
+                        categoria={String(loja.categoria?.nome || "")}
+                        descricao=""
+                        sticker_URL={loja.sticker_url}
+                    />
                 ))}
-              </div>
-              )
-            );
-            
-        
+            </div>
+        )
+    );
 
     return (
         <>
-        <Navbar />
-        <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
-           <div className=" text-white">
-             <h1 className="text-4xl font-bold leading-snug pl-20 pt-15 ">
-                  Do CAOS à organização,
-             </h1>
-             <h1 className="text-4xl font-bold leading-snug pl-45 pb-10">
-                em alguns cliques!
-             </h1>   
-           </div>
-           <div className=" h-full relative ml-8">
-                 <img src="/images/Mascote1.png" alt ="Mascote" className = " w-130 h-130 object-contain pr-20"/>
-           </div>
-           
-        </div> 
-        <div className=" relative z-10 bg-[#F6F3E4] h-full  pl-10 pt-10 ">
-          <div className="  text-2xl font-
-League Spartan text-black">
-            <div className=" flex items-center justify-end pr-5 pb-5">
-              <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2">
-              <input
-                type = "text"
-                placeholder="Procurar por..."
-                className=" bg-transparent outline-none w-full h-full text-black px-2
-                            placeholder: text-[#982829] 
-                            placeholder: text-sm"
-              />
-              <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
-                <FaMagnifyingGlass size={20} className="ml-2 text-[#982829]"/>
-              </button>
+            <Navbar />
 
-              </div>
+            <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
+                <div>
+                    <h1 className="text-4xl font-bold pl-20 pt-15">Do CAOS à organização,</h1>
+                    <h1 className="text-4xl font-bold pl-45 pb-10">em alguns cliques!</h1>
+                </div>
 
-              
-              
+                <div className="h-full relative ml-8">
+                    <img src="/images/Mascote1.png" className="w-130 h-130 object-contain pr-20" />
+                </div>
+            </div>
+
+            <div className="relative z-10 bg-[#F6F3E4] pl-10 pt-10">
+
+                <div className="flex items-center justify-end pr-5 pb-5">
+                    <div className="flex text-[#982829] rounded-2xl w-130 h-12 p-2">
+                        <BarraPesquisa
+                            dadosOriginais={[]} setDadosFiltrados={() => {}}
+                            chave={["nome"]}
+                            placeholder="Pesquisar produtos, lojas e categorias..."
+                            autoFilter={true} onSearch={handleUniversalSearch}
+                        />
+                    </div>
+                </div>
+
+                {isSearching ? (
+                    <>
+                        <h1 className="text-2xl font-bold pt-3">Resultados</h1>
+
+                        {renderProdutos("Produtos Encontrados", produtosFiltrados)}
+
+                        <h1 className="text-2xl font-bold pt-10">Lojas Encontradas</h1>
+                        {renderLojas(lojasFiltradas)}
+
+                        {produtosFiltrados.length === 0 && lojasFiltradas.length === 0 && (
+                            <h1 className="text-xl font-bold pt-5">Nenhum resultado encontrado.</h1>
+                        )}
+                    </>
+                ) : (
+                <>
+                    <h1> Categorias </h1>
+
+                    <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
+                        <button onClick={() => router.push('../categoria_especifica/mercado')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Mercado</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/remedio')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Remédios</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Cosméticos</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/moda')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Moda</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Eletrônicos</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/jogos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Jogos</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Brinquedos</p>
+                        </button>
+
+                        <button onClick={() => router.push('../categoria_especifica/casa')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                            <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
+                            <p className="text-sm text-center mt-1">Casa</p>
+                        </button>
+                    </div>
+
+                    {renderProdutos("Produtos de Jogos", produtosJogos)}
+                    {renderProdutos("Produtos de Casa", produtosCasa)}
+
+                    <h1 className="pt-10">Lojas</h1>
+                    {renderLojas(lojasOriginais)}
+                </>
+                )}
 
             </div>
-            <h1> Categorias </h1>
-            <div className=" justify-center flex overflow-x-auto whitespace-nowrap p-4 space-x-10  flex-shrink-0"> {/* botoes de categorias com scroll horizontal */}
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/mercado')}>
-                <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Mercado</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/remedio')}>
-                <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Remédios</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/cosmeticos')}>
-                <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Cosméticos</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/moda')}>
-                <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Moda</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/eletronicos')}>
-                <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Eletrônicos</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/jogos')}>
-                <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Jogos</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push('../categoria_especifica/brinquedos')}>
-                <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Brinquedos</p>
-              </button>
-              <button className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"onClick={() => router.push('../categoria_especifica/casa')}>
-                <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]"/>
-                <p className="text-sm text-center mt-1">Casa</p>
-              </button>
-            </div>
-            {renderProdutos("Produtos de Jogos", produtosJogos)}
-            {renderProdutos("Produtos de Casa", produtosCasa)}
-            <div className=" items-center justify-between pr-5 pt-10">
-            <div className=" flex justify-between items-center pb-4">
-             <h1 className="pt-5"> Lojas </h1>
-             <div className=" bg-white text-[#982829] rounded-2xl w-130 h-12 p-2 justify-between items-center pl-4">
-              <div className="flex">
-                Filtros
-                <button className=" text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer">
-                <FaAngleDown size={30} className="ml-2 text-[#982829]"/>
-              </button>
-              </div>
-           
-              </div>
-              </div>
-              </div>
-            {renderLojas()}
-          </div>
-
-        </div>
         </>
-        
-    )
+    );
 }

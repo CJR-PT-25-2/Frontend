@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 interface Produto {
     id: number;
@@ -21,12 +22,12 @@ export default function FeedPage() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pesquisa, setPesquisa] = useState("");
 
     useEffect(() => {
         api
             .get("/produto/categoria_pai/15")
             .then((res) => {
-                console.log("Produtos recebidos:", res.data);
                 setProdutosOriginais(res.data);
                 setProdutos(res.data);
             })
@@ -35,8 +36,6 @@ export default function FeedPage() {
     }, []);
 
     const filtrarCategoria = (subId: number) => {
-        console.log("Filtrando categoria:", subId);
-
         if (subId === 0) {
             setProdutos(produtosOriginais);
             return;
@@ -46,7 +45,15 @@ export default function FeedPage() {
             (p) => Number(p.categoria_id) === Number(subId)
         );
 
-        console.log("Filtrados:", filtrados);
+        setProdutos(filtrados);
+    };
+
+    const filtrarPorNome = (termo: string) => {
+        const texto = termo.toLowerCase();
+
+        const filtrados = produtosOriginais.filter((p) =>
+            p.nome.toLowerCase().includes(texto)
+        );
 
         setProdutos(filtrados);
     };
@@ -65,8 +72,8 @@ export default function FeedPage() {
     return (
         <>
             <Navbar />
-            <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
 
+            <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
                 <div className="text-white text-right pr-5">
                     <h1 className="text-4xl leading-snug pt-15">
                         O UNIVERSO da <strong className="font-bold">imaginação</strong>,
@@ -75,16 +82,44 @@ export default function FeedPage() {
                         em um só lugar!
                     </h1>
                 </div>
+
                 <div className="h-full relative ml-2">
                     <img
-                        src="/images/Mascote2.png" alt="Mascote" className="w-140 h-140 object-contain pr-20"
+                        src="/images/Mascote2.png"
+                        alt="Mascote"
+                        className="w-140 h-140 object-contain pr-20"
                     />
                 </div>
-
             </div>
 
             <div className="relative z-10 bg-[#F6F3E4] h-300 pl-10 pt-10">
 
+                {/* Barra de Pesquisa */}
+                <div className="flex items-center justify-end pr-5 pb-5">
+                    <div className="flex bg-white text-[#982829] rounded-2xl w-130 h-12 p-2">
+                        <input
+                            type="text"
+                            placeholder="Procurar por..."
+                            value={pesquisa}
+                            onChange={(e) => {
+                                setPesquisa(e.target.value);
+                                filtrarPorNome(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") filtrarPorNome(pesquisa);
+                            }}
+                            className="bg-transparent outline-none w-full h-full text-black px-2 placeholder:text-[#982829] placeholder:text-sm"
+                        />
+                        <button
+                            onClick={() => filtrarPorNome(pesquisa)}
+                            className="text-white rounded-2xl px-4 py-2 hover:scale-105 cursor-pointer"
+                        >
+                            <FaMagnifyingGlass size={20} className="ml-2 text-[#982829]" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Categorias */}
                 <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
                     <button
                         onClick={() => filtrarCategoria(0)}
@@ -121,10 +156,9 @@ export default function FeedPage() {
                         className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
                         Outros
                     </button>
-
                 </div>
 
-
+                {/* Produtos */}
                 <div className="grid grid-cols-4 gap-6 mt-10">
                     {loading ? (
                         <p>Carregando...</p>
