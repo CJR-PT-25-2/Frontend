@@ -4,25 +4,27 @@ import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
 import BarraPesquisa from "@/app/components/barra_pesquisa";
+import Caixa_prod from "@/app/components/caixinha_produto";
+import { useRouter } from "next/navigation";
 
-interface Produto {
+type ProdutoParacard = {
     id: number;
     nome: string;
     preco: number;
+    Imagems_produto_URL: string;
+    estoque: number;
     categoria_id: number;
-
-    Imagems_produto_URL: string | null;
-    imagem1_url: string | null;
-    imagem2_url: string | null;
-    imagem3_url: string | null;
-    imagem4_url: string | null;
+    Loja: {
+      sticker_url : string;
+    }
 }
 
 export default function FeedPage() {
-    const [produtos, setProdutos] = useState<Produto[]>([]);
-    const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
+    const [produtos, setProdutos] = useState<ProdutoParacard[]>([]);
+    const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroAtivoId, setFiltroAtivoId] = useState(0);
+    const router = useRouter();
 
     useEffect(() => {
         api
@@ -37,8 +39,7 @@ export default function FeedPage() {
     }, []);
 
  const filtrarCategoria = (subId: number) => {
-    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
-    setFiltroAtivoId(subId); // <-- Adicione esta linha
+    setFiltroAtivoId(subId); 
 
     console.log("Filtrando categoria:", subId);
 
@@ -51,16 +52,7 @@ export default function FeedPage() {
     setProdutos(filtrados);
 };
 
-    const getImagemProduto = (p: Produto) => {
-        return (
-            p.Imagems_produto_URL ??
-            p.imagem1_url ??
-            p.imagem2_url ??
-            p.imagem3_url ??
-            p.imagem4_url ??
-            "/images/sem-imagem.png"
-        );
-    };
+    
 
     return (
         <>
@@ -123,31 +115,29 @@ export default function FeedPage() {
 
 
                 <div className="grid grid-cols-4 gap-6 mt-10">
-                    {loading ? (
-                        <p>Carregando...</p>
-                    ) : produtos.length === 0 ? (
-                        <p>Nenhum produto encontrado.</p>
-                    ) : (
-                        produtos.map((p) => (
-                            <div
-                                key={p.id}
-                                className="bg-white p-4 rounded-xl shadow-md hover:scale-105 transition"
-                            >
-                                <img
-                                    src={getImagemProduto(p)}
-                                    className="w-full h-40 object-cover rounded-lg"
+                          {loading ? (
+                            <p>Carregando...</p>
+                          ) : produtos.length === 0 ? (
+                            <p>Nenhum produto encontrado.</p>
+                          ) : (
+                            produtos.map((p) => (
+                              <div
+                                key={p.id} className="cursor-pointer" onClick={() => router.push(`/produto/${p.id}`)}
+                              >
+                                <Caixa_prod
+                                  id={p.id}
+                                  nome={p.nome}
+                                  preco={p.preco}
+                                  imagemUrl={p.Imagems_produto_URL}
+                                  quantidade={p.estoque}
+                                  disponivel={true}
+                                  lojaURL={p.Loja?.sticker_url ?? ""}
                                 />
-
-                                <p className="mt-2 font-bold">{p.nome}</p>
-
-                                <p className="font-bold text-[#982829] mt-1">
-                                    R$ {Number(p.preco).toFixed(2)}
-                                </p>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-        </>
-    );
-}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                }
