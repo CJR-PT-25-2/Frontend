@@ -22,6 +22,7 @@ export default function FeedPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtroAtivoId, setFiltroAtivoId] = useState(0);
 
   useEffect(() => {
     api
@@ -36,17 +37,19 @@ export default function FeedPage() {
   }, []);
 
   const filtrarCategoria = (subId: number) => {
+    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
+    setFiltroAtivoId(subId); // <-- Adicione esta linha
+
     console.log("Filtrando categoria:", subId);
 
     const filtrados = produtosOriginais.filter(
-      (p) => Number(p.categoria_id) === Number(subId)
+        (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
     );
 
     console.log("Filtrados:", filtrados);
 
     setProdutos(filtrados);
-  };
-
+};
   const getImagemProduto = (p: Produto) => {
     return (
       p.Imagems_produto_URL ??
@@ -88,22 +91,22 @@ export default function FeedPage() {
 
         <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
           <button onClick={() => filtrarCategoria(0)}
-            className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 0 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Todos
           </button>
 
           <button onClick={() => filtrarCategoria(46)}
-            className="h-10 w-25 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-25 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 46 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Eletrônicos
           </button>
 
           <button onClick={() => filtrarCategoria(47)}
-            className="h-10 w-24 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 47 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Tabuleiros
           </button>
 
           <button onClick={() => filtrarCategoria(48)}
-            className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 48 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Outros
           </button>
 

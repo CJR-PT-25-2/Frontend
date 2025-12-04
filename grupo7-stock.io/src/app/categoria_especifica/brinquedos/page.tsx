@@ -23,6 +23,7 @@ export default function FeedPage() {
     const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
     const [pesquisa, setPesquisa] = useState("");
+    const [filtroAtivoId, setFiltroAtivoId] = useState(0);
 
     useEffect(() => {
         api
@@ -36,17 +37,19 @@ export default function FeedPage() {
     }, []);
 
     const filtrarCategoria = (subId: number) => {
-        if (subId === 0) {
-            setProdutos(produtosOriginais);
-            return;
-        }
+    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
+    setFiltroAtivoId(subId); // <-- Adicione esta linha
 
-        const filtrados = produtosOriginais.filter(
-            (p) => Number(p.categoria_id) === Number(subId)
-        );
+    console.log("Filtrando categoria:", subId);
 
-        setProdutos(filtrados);
-    };
+    const filtrados = produtosOriginais.filter(
+        (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
+    );
+
+    console.log("Filtrados:", filtrados);
+
+    setProdutos(filtrados);
+};
 
     const filtrarPorNome = (termo: string) => {
         const texto = termo.toLowerCase();
@@ -123,37 +126,37 @@ export default function FeedPage() {
                 <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
                     <button
                         onClick={() => filtrarCategoria(0)}
-                        className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 0 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Todos
                     </button>
 
                     <button
                         onClick={() => filtrarCategoria(16)}
-                        className="h-10 w-18 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-18 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 16 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Boneca
                     </button>
 
                     <button
                         onClick={() => filtrarCategoria(17)}
-                        className="h-10 w-22 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-22 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 17 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Carrinho
                     </button>
 
                     <button
                         onClick={() => filtrarCategoria(18)}
-                        className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 18 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Legos
                     </button>
 
                     <button
                         onClick={() => filtrarCategoria(19)}
-                        className="h-10 w-24 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 19 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Pelúcias
                     </button>
 
                     <button
                         onClick={() => filtrarCategoria(20)}
-                        className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+                        className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 20 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Outros
                     </button>
                 </div>
