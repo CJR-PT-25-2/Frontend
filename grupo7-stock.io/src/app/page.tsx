@@ -219,42 +219,42 @@ export default function Home() {
                     <h1 className="text-black font-bold text-xl"> Categorias </h1>
 
                     <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
-                        <button onClick={() => router.push('../categoria_especifica/mercado')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/mercado')} className=" cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Mercado</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/remedio')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/remedio')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black  mt-1">Remédios</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Cosméticos</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/moda')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/moda')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Moda</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Eletrônicos</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/jogos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/jogos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Jogos</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Brinquedos</p>
                         </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/casa')} className="h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                        <button onClick={() => router.push('../categoria_especifica/casa')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                             <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
                             <p className="text-sm text-center text-black mt-1">Casa</p>
                         </button>

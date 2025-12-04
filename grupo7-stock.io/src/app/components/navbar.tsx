@@ -7,6 +7,7 @@ import { IoBag } from "react-icons/io5";
 import { FaStore } from "react-icons/fa";
 import { IoMdPerson } from "react-icons/io";
 import { IoMdExit } from "react-icons/io";
+import { MdGroups } from "react-icons/md";
 
 
 
@@ -32,6 +33,11 @@ export default function Navbar(){
                         />
                         </button>   
                 <div className="justify-between flex items-center pr-10">
+                    <button className={`mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105 ${
+                            pathname === '/feed_comunidade' ? 'text-[#d6993c]' : ''
+                             }`}    onClick={() => router.push('/feed_comunidade')}>
+                        <MdGroups size={40}/>
+                    </button>
                     <button className={`mr-6 cursor-pointer hover:text-[#d6993c] hover:scale-105 ${
                             pathname === '/pag_produtos' ? 'text-[#d6993c]' : ''
                              }`}    onClick={() => router.push('/pag_produtos')}>

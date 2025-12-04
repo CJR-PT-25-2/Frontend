@@ -271,8 +271,13 @@ League Spartan text-black">
               
 
             </div>
+            {currentPage === 1 && (
+            <>
             {renderProdutos("Produtos de Jogos", produtosJogos)}
             {renderProdutos("Produtos de Mercado", produtosCasa)}
+            </>
+            )}
+            <h1 className="text-xl font-bold mb-4">Todos os Produtos</h1>
             {renderProdutosGerais("", produtosGerais)}
             {renderPaginationButtons()}
             

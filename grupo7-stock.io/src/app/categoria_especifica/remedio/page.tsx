@@ -22,6 +22,7 @@ export default function FeedPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtroAtivoId, setFiltroAtivoId] = useState(0);
 
   useEffect(() => {
     api
@@ -36,16 +37,19 @@ export default function FeedPage() {
   }, []);
 
   const filtrarCategoria = (subId: number) => {
+    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
+    setFiltroAtivoId(subId); // <-- Adicione esta linha
+
     console.log("Filtrando categoria:", subId);
 
     const filtrados = produtosOriginais.filter(
-      (p) => Number(p.categoria_id) === Number(subId)
+        (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
     );
 
     console.log("Filtrados:", filtrados);
 
     setProdutos(filtrados);
-  };
+};
 
   const getImagemProduto = (p: Produto) => {
     return (
@@ -88,27 +92,27 @@ export default function FeedPage() {
 
         <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
           <button onClick={() => filtrarCategoria(0)}
-            className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 0 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Todos
           </button>
 
           <button onClick={() => filtrarCategoria(13)}
-            className="h-10 w-28 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-28 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 13 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Cósmeticos
           </button>
 
           <button onClick={() => filtrarCategoria(12)}
-            className="h-10 w-15 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 12 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Higiene
           </button>
 
           <button onClick={() => filtrarCategoria(11)}
-            className="h-10 w-32 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-32 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 11 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Medicamentos
           </button>
 
           <button onClick={() => filtrarCategoria(14)}
-            className="h-10 w-20 text-[#982829] bg-white rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center">
+            className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 14 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Outros
           </button>
 

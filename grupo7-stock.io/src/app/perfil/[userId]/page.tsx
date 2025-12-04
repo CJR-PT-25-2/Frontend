@@ -11,6 +11,8 @@ import EditStoreModal from "@/app/components/EditStoreModal";
 import EditProductModal from "@/app/components/EditProductModal";
 import CreateStoreModal from "@/app/components/CreateStoreModal"; 
 import AddProductModal from "@/app/components/AddProductModal"; 
+import { IoMdReturnLeft } from "react-icons/io";
+
 
 
 interface Loja {
@@ -243,10 +245,10 @@ export default function PerfilPage() {
         <div className="relative bg-black h-60">
 
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.back()}
             className="absolute left-4 sm:left-12 top-4 sm:top-[57%] p-2 rounded-full hover:bg-white/10 transition"
           >
-            <img src="/images/return.png" width={40} height={40} />
+            <IoMdReturnLeft size={50} color="white" />
           </button>
 
           <div className="absolute left-[20%] bottom-0 transform -translate-x-1/2 translate-y-1/4">
