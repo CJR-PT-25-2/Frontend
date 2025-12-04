@@ -62,7 +62,7 @@ export default function FeedPage() {
       <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
         <div className=" text-white">
           <h1 className="text-4xl leading-snug pl-30 pt-15 ">
-            O universo da <strong className="font-bold">tecnologia</strong>,
+            O UNIVERSO da <strong className="font-bold">tecnologia</strong>,
           </h1>
           <h1 className="text-4xl leading-snug pl-70 pb-10">
             em um só lugar!
