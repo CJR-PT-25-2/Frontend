@@ -16,6 +16,7 @@ import Caixa_prod from "../app/components/caixinha_produto";
 import Sticker_loja from "./components/sticker_loja";
 import api from "@/lib/api";
 import BarraPesquisa from "./components/barra_pesquisa";
+import BarraFiltro from "./components/Filtro";
 
 type ProdutoParacard = {
     id: number;
@@ -34,12 +35,13 @@ type LojaParacard = {
     nome: String;
     sticker_url: string;
     categoria: {
+        id: number,
         nome: string
     } | null
 }
 
 const Categoria_id_Casa = 1;
-const Categoria_id_Jogos = 38;
+const Categoria_id_Jogos = 45;
 
 export default function Home() {
 
@@ -54,11 +56,31 @@ export default function Home() {
     const [produtosFiltrados, setProdutosFiltrados] = useState<ProdutoParacard[]>([]);
     const [lojasFiltradas, setLojasFiltradas] = useState<LojaParacard[]>([]);
 
+    const [activeStoreFilterId, setActiveStoreFilterId] = useState<number>(0); 
+
     const [isSearching, setIsSearching] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // barra de filtro de categorias - loja
+    const [activeStoreCategory, setActiveStoreCategory] = useState<string>('Todas');
+
     const pegarValorAninhado = (obj: any, caminho: string) =>
         caminho.split(".").reduce((acc, key) => acc?.[key], obj);
+
+     const handleStoreCategoryFilter = (id: number) => {
+        setActiveStoreFilterId(id); // Atualiza o estado para destacar o botão no BarraFiltro
+
+        if (id === 0) {
+            setLojasFiltradas(lojasOriginais); // Sem filtro, mostra tudo
+            return;
+        }
+
+        const filtradas = lojasOriginais.filter(loja => 
+            loja.categoria && loja.categoria.id === id
+        );
+
+        setLojasFiltradas(filtradas); // Atualiza a lista exibida de lojas
+    };
 
     const handleUniversalSearch = (termo: string) => {
 
@@ -188,7 +210,7 @@ export default function Home() {
                 </div>
             </div>
 
-            <div className="relative z-10 bg-[#F6F3E4] pl-10 pt-10">
+            <div className="relative z-10 bg-[#F6F3E4] pl-10 pt-10 min-h-400">
 
                 <div className="flex items-center justify-end pr-5 pb-5">
                     <div className="flex text-[#982829] rounded-2xl w-130 h-12 p-2">
@@ -264,7 +286,13 @@ export default function Home() {
                     {renderProdutos("Produtos de Casa", produtosCasa)}
 
                     <h1 className="pt-10 text-black text-xl font-bold ">Lojas</h1>
-                    {renderLojas(lojasOriginais)}
+                     <div className="pb-5 justify-end flex pr-5 ">
+                         <BarraFiltro 
+                            onFilter={handleStoreCategoryFilter} 
+                            filtroAtivoId={activeStoreFilterId}
+                        />
+                    </div>
+                     {renderLojas(lojasFiltradas)}
                 </>
                 )}
 

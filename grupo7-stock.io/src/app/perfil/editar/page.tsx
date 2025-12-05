@@ -18,7 +18,7 @@ export default function EditarPerfilPage() {
 
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
-  const [deletando, setDeletando] = useState(false); // Novo estado para exclusão
+  const [deletando, setDeletando] = useState(false); 
   const [carregando, setCarregando] = useState(true);
 
   const [fotoArquivo, setFotoArquivo] = useState<File | null>(null);
@@ -30,9 +30,7 @@ export default function EditarPerfilPage() {
     };
   }, [previewUrl]);
 
-  // =========================
-  // 🔹 Carregar dados do usuário
-  // =========================
+ 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -63,16 +61,12 @@ export default function EditarPerfilPage() {
       .catch(() => router.replace("/login"));
   }, []);
 
-  // =========================
-  // 🔹 Alterar dados textuais
-  // =========================
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDadosForm({ ...dadosForm, [e.target.name]: e.target.value });
   };
 
-  // =========================
-  // 🔹 Salvar alterações
-  // =========================
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
@@ -124,9 +118,7 @@ export default function EditarPerfilPage() {
     }
   };
 
-  // =========================
-  // 💀 Apagar perfil (NOVA FUNÇÃO)
-  // =========================
+  
   const apagarPerfil = useCallback(async () => {
     if (!perfil) return;
 
@@ -334,7 +326,7 @@ export default function EditarPerfilPage() {
               `}
               disabled={deletando || salvando}
             >
-              {deletando ? "Deletando..." : "Apagar Perfil Permanentemente"}
+              {deletando ? "Deletando..." : "Excluir Perfil Permanentemente"}
             </button>
           </div>
         </div>

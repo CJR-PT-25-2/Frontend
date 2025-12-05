@@ -290,7 +290,7 @@ export default function PerfilPage() {
           {isMeuPerfil && (
               <div className="flex justify-end mb-8 max-w-4xl mx-auto">
                 <button
-                  onClick={() => setModalCriarLojaAberto(true)} // 🚀 ABRE MODAL DE CRIAÇÃO
+                  onClick={() => setModalCriarLojaAberto(true)} // ABRE MODAL DE CRIAÇÃO
                   className="bg-[#d6993c] text-black py-2 px-8 rounded-full font-semibold hover:bg-yellow-600 transition shadow-lg"
                 >
                   Criar Nova Loja
@@ -349,12 +349,12 @@ export default function PerfilPage() {
 
                         {/* DETALHES */}
                         <div className="text-left">
-                          <h3 className="text-2xl font-extrabold text-gray-600 mb-0 leading-snug group-hover:text-[#d6993c] transition">
+                          <h3 className="text-2xl font-extrabold text-black mb-0 leading-snug group-hover:text-[#d6993c] transition">
                               {l.nome}
                           </h3>
 
                           {/* CATEGORIA */}
-                          <p className="text-sm font-medium text-gray-500 italic">
+                          <p className="text-sm font-medium text-gray-800 italic">
                             {l.categoria?.nome ? `Categoria: ${l.categoria.nome}` : "Sem Categoria"}
                           </p>
                           <span className="text-sm text-[#325862] hover:underline">Ver Loja</span>
@@ -387,7 +387,7 @@ export default function PerfilPage() {
 
                     {/* ÁREA DE PRODUTOS (CARROSSEL HORIZONTAL) */}
                     <div className="flex justify-between items-center mb-4 pb-2">
-                        <h4 className="text-xl font-bold text-gray-700 text-left">
+                        <h4 className="text-xl font-bold text-gray-900 text-left">
                           Produtos de {l.nome}
                         </h4>
                         {/* BOTÃO DE ADICIONAR PRODUTO (+) */}
@@ -426,7 +426,7 @@ export default function PerfilPage() {
                               </div>
 
                               <div className="p-3">
-                                <p className="text-xs font-semibold text-[#d6993c] uppercase mb-1 truncate">{produto.Categoria?.nome || "Geral"}</p>
+                                <p className="text-xs font-semibold text-black uppercase mb-1 truncate">{produto.Categoria?.nome || "Geral"}</p>
                                 <p className="text-base font-bold text-gray-800 truncate mb-1">{produto.nome}</p>
                                 <p className="text-xl text-green-600 font-extrabold">R$ {parseFloat(produto.preco).toFixed(2)}</p>
                               </div>

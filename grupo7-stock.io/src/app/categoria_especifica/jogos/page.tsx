@@ -4,25 +4,29 @@ import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
 import BarraPesquisa from "@/app/components/barra_pesquisa";
+import { useRouter } from "next/navigation";
+import Caixa_prod from "@/app/components/caixinha_produto";
 
-interface Produto {
+
+type ProdutoParacard = {
   id: number;
   nome: string;
   preco: number;
+  Imagems_produto_URL: string;
+  estoque: number;
   categoria_id: number;
-
-  Imagems_produto_URL: string | null;
-  imagem1_url: string | null;
-  imagem2_url: string | null;
-  imagem3_url: string | null;
-  imagem4_url: string | null;
-}
+  Loja?: {
+    sticker_url: string;
+    nome: string;
+  };
+};
 
 export default function FeedPage() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
+  const [produtos, setProdutos] = useState<ProdutoParacard[]>([]);
+  const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivoId, setFiltroAtivoId] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     api
@@ -43,22 +47,12 @@ export default function FeedPage() {
     console.log("Filtrando categoria:", subId);
 
     const filtrados = produtosOriginais.filter(
-        (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
+      (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
     );
 
     console.log("Filtrados:", filtrados);
 
     setProdutos(filtrados);
-};
-  const getImagemProduto = (p: Produto) => {
-    return (
-      p.Imagems_produto_URL ??
-      p.imagem1_url ??
-      p.imagem2_url ??
-      p.imagem3_url ??
-      p.imagem4_url ??
-      "/images/sem-imagem.png"
-    );
   };
 
   return (
@@ -67,7 +61,7 @@ export default function FeedPage() {
       <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
         <div className=" text-white">
           <h1 className="text-4xl leading-snug pl-45 pt-15 ">
-            O universo dos <strong className="font-bold">games</strong>,
+            O UNIVERSO dos <strong className="font-bold">games</strong>,
           </h1>
           <h1 className="text-4xl leading-snug pl-70 pb-10">
             em um só lugar!
@@ -112,7 +106,6 @@ export default function FeedPage() {
 
         </div>
 
-
         <div className="grid grid-cols-4 gap-6 mt-10">
           {loading ? (
             <p>Carregando...</p>
@@ -121,19 +114,17 @@ export default function FeedPage() {
           ) : (
             produtos.map((p) => (
               <div
-                key={p.id}
-                className="bg-white p-4 rounded-xl shadow-md hover:scale-105 transition"
+                key={p.id} className="cursor-pointer" onClick={() => router.push(`/produto/${p.id}`)}
               >
-                <img
-                  src={getImagemProduto(p)}
-                  className="w-full h-40 object-cover rounded-lg"
+                <Caixa_prod
+                  id={p.id}
+                  nome={p.nome}
+                  preco={p.preco}
+                  imagemUrl={p.Imagems_produto_URL}
+                  quantidade={p.estoque}
+                  disponivel={true}
+                  lojaURL={p.Loja?.sticker_url ?? ""}
                 />
-
-                <p className="mt-2 font-bold">{p.nome}</p>
-
-                <p className="font-bold text-[#982829] mt-1">
-                  R$ {Number(p.preco).toFixed(2)}
-                </p>
               </div>
             ))
           )}

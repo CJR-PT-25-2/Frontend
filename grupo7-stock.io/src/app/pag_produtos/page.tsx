@@ -10,8 +10,6 @@ import { FaLaptop } from "react-icons/fa";
 import { IoGameControllerSharp } from "react-icons/io5";
 import { TbHorseToy } from "react-icons/tb";
 import { FaHouseChimneyWindow } from "react-icons/fa6";
-import { FaMagnifyingGlass } from "react-icons/fa6";
-import { FaAngleDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../components/caixinha_produto";
 import api from "@/lib/api";
