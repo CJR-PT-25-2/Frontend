@@ -41,7 +41,7 @@ type LojaParacard = {
 }
 
 const Categoria_id_Casa = 1;
-const Categoria_id_Jogos = 38;
+const Categoria_id_Jogos = 45;
 
 export default function Home() {
 

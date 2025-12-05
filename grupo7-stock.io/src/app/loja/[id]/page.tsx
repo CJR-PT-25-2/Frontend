@@ -33,10 +33,10 @@ const renderStars = (rating: number, size: string = "text-3xl") => {
   const emptyStars = 5 - fullStars;
 
   return (
-    <div className={`flex justify-center ${size} text-yellow-400`}>
+    <span className={`flex justify-center ${size} text-yellow-400`}>
       {"★".repeat(fullStars)}
       {"☆".repeat(emptyStars)}
-    </div>
+    </span>
   );
 };
 
