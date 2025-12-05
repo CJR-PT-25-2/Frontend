@@ -13,6 +13,7 @@ import { FaHouseChimneyWindow } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../components/caixinha_produto";
 import api from "@/lib/api";
+import { FaMagnifyingGlass, FaAngleDown } from "react-icons/fa6";
 
 type ProdutoParacard = {
   id: number;
