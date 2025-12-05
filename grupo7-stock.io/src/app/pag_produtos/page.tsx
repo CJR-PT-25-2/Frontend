@@ -301,7 +301,7 @@ export default function Pag_produtos() {
                     onChange={(e) =>
                       setPendenteRating(e.target.value as any)
                     }
-                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black"
                   >
                     <option value="Nenhum">Padrão</option>
                     <option value="Melhor">Melhor Avaliados</option>
@@ -318,7 +318,7 @@ export default function Pag_produtos() {
                     onChange={(e) =>
                       setPendenteSort(e.target.value as any)
                     }
-                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black"
                   >
                     <option value="Nenhum">Padrão</option>
                     <option value="Mais Recente">Mais Recente</option>
@@ -362,7 +362,7 @@ export default function Pag_produtos() {
 
         {currentPage === 1 && (
           <>
-            <h1 className="text-xl font-bold mb-4">Produtos de Jogos</h1>
+            {/* <h1 className="text-xl font-bold mb-4">Produtos de Jogos</h1>
             <div className="flex overflow-x-auto space-x-4 p-4">
               {produtosJogos.map((p) => (
                 <Caixa_prod
@@ -392,10 +392,10 @@ export default function Pag_produtos() {
               ))}
             </div>
           </>
-        )}
+        )} */}
 
         {/* TODOS OS PRODUTOS */}
-        <h1 className="text-xl font-bold mt-6">Todos os Produtos</h1>
+        <h1 className="text-xl font-bold mt-6 text-black">Todos os Produtos</h1>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
           {pagina.map((p) => (
@@ -439,6 +439,8 @@ export default function Pag_produtos() {
             {">"}
           </button>
         </div>
+        </>
+        )}
       </div>
     </>
   );
