@@ -181,7 +181,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => (
         {loading ? (
             <p>Carregando...</p>
         ) : lista.length === 0 ? (
-            <p>Nenhum item encontrado.</p>
+            <p className="text-black">Nenhum item encontrado</p>
         ) : (
             <>
 
@@ -232,7 +232,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => (
     loading ? (
         <p>Carregando lojas...</p>
     ) : lista.length === 0 ? (
-        <p>Nenhuma loja encontrada...</p>
+        <p className="text-black">Nenhuma loja encontrada...</p>
     ) : (
         <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
             {lista.map(loja => (
