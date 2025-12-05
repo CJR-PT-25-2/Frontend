@@ -77,17 +77,58 @@ export default function EditProfileModal({ onClose, onSaveSuccess }: EditProfile
     setSalvando(true);
 
     const token = localStorage.getItem("token");
-    if (!token || !perfil) return;
+    if (!token || !perfil) {
+      setSalvando(false);
+      return; 
+    }
+
+    
+    const payloadParaPatch: {
+        name?: string;
+        username?: string;
+        email?: string;
+        senha?: string; 
+    } = {};
+
+    
+    if (dadosForm.name !== perfil.name) {
+        payloadParaPatch.name = dadosForm.name;
+    }
+    if (dadosForm.username !== perfil.username) {
+        payloadParaPatch.username = dadosForm.username;
+    }
+    
+    if (dadosForm.email !== perfil.email) {
+        payloadParaPatch.email = dadosForm.email;
+    }
+
+    
+    if (dadosForm.senha.length > 0) {
+        payloadParaPatch.senha = dadosForm.senha;
+    }
 
     try {
       
-      await api.patch(`/user/${perfil.id}`, dadosForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      
+      let dadosDeTextoAlterados = false;
+
+      
+      if (Object.keys(payloadParaPatch).length > 0) {
+          console.log("CLIENTE: Enviando PATCH com payload:", payloadParaPatch);
+          await api.patch(`/user/${perfil.id}`, payloadParaPatch, {
+              headers: { Authorization: `Bearer ${token}` },
+          });
+          dadosDeTextoAlterados = true;
+      }
+      
+      let uploadSucesso = false;
 
       
       if (fotoArquivo) {
+        console.log("CLIENTE: Arquivo de foto selecionado. Tentando upload para /avatar..."); 
+        
         const formData = new FormData();
+        
         formData.append("file", fotoArquivo); 
 
         const upload = await api.post(
@@ -96,31 +137,62 @@ export default function EditProfileModal({ onClose, onSaveSuccess }: EditProfile
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
             },
           }
         );
 
         
         if (upload.data.foto_perfil_URL) {
+          
           setPerfil((prev) =>
             prev ? { ...prev, foto_perfil_URL: upload.data.foto_perfil_URL } : prev
           );
+          
+          
+          if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+
+          
+          setPreviewUrl(`http://localhost:3001${upload.data.foto_perfil_URL}`);
+          
+          
+          setFotoArquivo(null); 
+          uploadSucesso = true;
         }
       }
-
-      alert("Perfil atualizado com sucesso!");
       
-      onSaveSuccess();
+      
+      else if (previewUrl && previewUrl.startsWith('blob:')) {
+         URL.revokeObjectURL(previewUrl);
+         
+         setPreviewUrl(perfil.foto_perfil_URL ? `http://localhost:3001${perfil.foto_perfil_URL}` : null);
+      }
+      
+      
+      if (dadosDeTextoAlterados || uploadSucesso) {
+        alert("Perfil atualizado com sucesso!");
+        onSaveSuccess();
+      } else {
+        
+        alert("Nenhuma alteração detectada para salvar.");
+        onClose();
+      }
 
-    } catch (err) {
-      console.error(err);
-      setErro("Erro ao salvar. Tente novamente.");
+
+    } catch (err: any) {
+      
+      console.error("Erro no handleSubmit:", err);
+      
+      
+      const backendMessage = Array.isArray(err.response?.data?.message) 
+          ? err.response.data.message.join(' | ') 
+          : err.response?.data?.message || "Erro desconhecido. Verifique o console e o log do backend.";
+
+      setErro(`Erro ao salvar: ${backendMessage}`);
+
     } finally {
       setSalvando(false);
     }
   };
-
   
   const apagarPerfil = useCallback(async () => {
     if (!perfil) return;
@@ -303,7 +375,7 @@ export default function EditProfileModal({ onClose, onSaveSuccess }: EditProfile
                     name="senha"
                     value={dadosForm.senha}
                     onChange={handleChange}
-                    required
+                    
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-3 bg-gray-100 text-gray-700"
                 />
             </div>
