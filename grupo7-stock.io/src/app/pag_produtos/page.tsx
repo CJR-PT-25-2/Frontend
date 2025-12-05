@@ -10,7 +10,6 @@ import { FaLaptop } from "react-icons/fa";
 import { IoGameControllerSharp } from "react-icons/io5";
 import { TbHorseToy } from "react-icons/tb";
 import { FaHouseChimneyWindow } from "react-icons/fa6";
-import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../components/caixinha_produto";
 import api from "@/lib/api";
@@ -29,20 +28,19 @@ type ProdutoParacard = {
 };
 
 const Categoria_id_Casa = 1;
-const Categoria_id_Jogos = 38;
-const Itens_por_pagina = 20;
+const Categoria_id_Jogos = 45;
+const Itens_por_pagina = 18;
 
 export default function Pag_produtos() {
   const router = useRouter();
 
   const [produtosCasa, setProdutosCasa] = useState<ProdutoParacard[]>([]);
   const [produtosJogos, setProdutosJogos] = useState<ProdutoParacard[]>([]);
-  const [produtosGerais, setProdutosGerais] = useState<ProdutoParacard[]>(
-    []
-  );
+  const [produtosGerais, setProdutosGerais] = useState<ProdutoParacard[]>([]);
   const [produtosGeraisOriginais, setProdutosGeraisOriginais] = useState<
     ProdutoParacard[]
-  >([]); // cópia original usada pela barra de pesquisa
+  >([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +49,7 @@ export default function Pag_produtos() {
 
   const renderPaginationButtons = () => {
     if (totalPages <= 1) return null;
+
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
     return (
@@ -58,10 +57,11 @@ export default function Pag_produtos() {
         <button
           onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
           disabled={currentPage === 1}
-          className={`p-2  ${currentPage === 1
+          className={`p-2 ${
+            currentPage === 1
               ? "text-gray-400"
-              : "text-black hover:bg-[#982829]  hover:scale-105 cursor-pointer"
-            }`}
+              : "text-black hover:bg-[#982829] hover:scale-105 cursor-pointer"
+          }`}
         >
           &lt;
         </button>
@@ -70,10 +70,11 @@ export default function Pag_produtos() {
           <button
             key={page}
             onClick={() => setCurrentPage(page)}
-            className={`p-2 transition-all  cursor-pointer ${page === currentPage
+            className={`p-2 transition-all cursor-pointer ${
+              page === currentPage
                 ? "bg-[#982829] text-white font-bold"
-                : " text-gray-700 hover:bg-[#982829] hover:scale-105 hover:text-white"
-              }`}
+                : "text-gray-700 hover:bg-[#982829] hover:text-white hover:scale-105"
+            }`}
           >
             {page}
           </button>
@@ -82,10 +83,11 @@ export default function Pag_produtos() {
         <button
           onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
           disabled={currentPage === totalPages}
-          className={`p-2  ${currentPage === totalPages
+          className={`p-2 ${
+            currentPage === totalPages
               ? "text-gray-400"
               : "text-black hover:bg-[#982829] hover:scale-105 cursor-pointer"
-            }`}
+          }`}
         >
           &gt;
         </button>
@@ -102,59 +104,51 @@ export default function Pag_produtos() {
       const response = await api.get(`/produto/categoria_pai/${id}`);
       setFunction(response.data);
     } catch (err) {
-      console.error(`Erro ao buscar produtos da categoria ${categoriaNome}:`, err);
-      setError(`Erro ao buscar produtos da categoria ${categoriaNome}`);
+      console.error(`Erro ao buscar produtos de ${categoriaNome}:`, err);
     }
   };
 
-  const fetchProdutosgeral = async (
-    page: number,
-    setFunction: React.Dispatch<React.SetStateAction<ProdutoParacard[]>>,
-    setTotalPages: React.Dispatch<React.SetStateAction<number>>
-  ) => {
+  const fetchProdutosgeral = async (page: number) => {
     try {
       const response = await api.get(`/produto`, {
-        params: {
-          page: page,
-          limit: Itens_por_pagina,
-        },
+        params: { page, limit: Itens_por_pagina },
       });
 
-      // response.data.data é a lista desta página
-      setFunction(response.data.data);
+      setProdutosGerais(response.data.data);
       setTotalPages(response.data.meta.totalPages);
+    } catch (err) {
+      console.error("Erro ao buscar produtos gerais", err);
+      setError("Erro ao buscar produtos");
+    }
+  };
 
-      // guardamos uma cópia "original" usada pelo componente de pesquisa
-      // (se quiser que a pesquisa pesquise em todo o catálogo, precisa buscar tudo sem paginação)
+  const fetchTodosProdutos = async () => {
+    try {
+      const response = await api.get(`/produto`, {
+        params: { page: 1, limit: 999999 },
+      });
+
       setProdutosGeraisOriginais(response.data.data);
     } catch (err) {
-      console.error(`Erro ao buscar produtos`, err);
-      setError(`Erro ao buscar produtos`);
+      console.error("Erro ao buscar produtos completos", err);
     }
   };
 
   useEffect(() => {
-    const loadprodutosGeral = async () => {
-      setLoading(true);
-      await fetchProdutosgeral(currentPage, setProdutosGerais, setTotalPages);
-      setLoading(false);
-    };
-    loadprodutosGeral();
+    setLoading(true);
+    fetchProdutosgeral(currentPage).finally(() => setLoading(false));
   }, [currentPage]);
 
   useEffect(() => {
-    const loadprodutos = async () => {
-      setLoading(true);
-      await fetchProdutosPorCategoriaPai(Categoria_id_Casa, setProdutosCasa, "Casa");
-      await fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "jogos");
-      setLoading(false);
-    };
-    loadprodutos();
+    fetchTodosProdutos();
+    fetchProdutosPorCategoriaPai(Categoria_id_Casa, setProdutosCasa, "Casa");
+    fetchProdutosPorCategoriaPai(Categoria_id_Jogos, setProdutosJogos, "Jogos");
   }, []);
 
   const renderProdutos = (titulo: string, produtos: ProdutoParacard[]) => (
     <div className="pt-5">
       <h1 className="text-xl font-semibold mb-4">{titulo}</h1>
+
       {loading ? (
         <p>Carregando produtos...</p>
       ) : produtos.length === 0 ? (
@@ -178,7 +172,7 @@ export default function Pag_produtos() {
     </div>
   );
 
-  const renderProdutosGerais = (titulo: string, produtos: ProdutoParacard[]) => (
+  const renderProdutosGerais = (produtos: ProdutoParacard[]) => (
     <div className="pt-5">
       {loading ? (
         <p>Carregando produtos...</p>
@@ -211,67 +205,79 @@ export default function Pag_produtos() {
   return (
     <>
       <Navbar />
+
       <div className="justify-center items-center h-60 bg-[#000000] text-white">
         <div className="text-2xl font-semibold text-white pl-10 pt-10">
-          <h1> Categorias </h1>
+          <h1>Categorias</h1>
         </div>
 
         <div className="justify-center flex overflow-x-auto whitespace-nowrap p-4 space-x-10 flex-shrink-0">
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/mercado")}
           >
             <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
             <p className="text-sm text-center text-[black] mt-1">Mercado</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/remedio")}
           >
             <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]   mt-1">Remédios</p>
+            <p className="text-sm text-center text-[black] mt-1">Remédios</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/cosmeticos")}
           >
             <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Cosméticos</p>
+            <p className="text-sm text-center text-[black] mt-1">Cosméticos</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/moda")}
           >
             <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Moda</p>
+            <p className="text-sm text-center text-[black] mt-1">Moda</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/eletronicos")}
           >
             <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Eletrônicos</p>
+            <p className="text-sm text-center text-[black] mt-1">Eletrônicos</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/jogos")}
           >
-            <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Jogos</p>
+            <IoGameControllerSharp
+              size={40}
+              className="mx-auto mt-2 text-[#982829]"
+            />
+            <p className="text-sm text-center text-[black] mt-1">Jogos</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/brinquedos")}
           >
             <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Brinquedos</p>
+            <p className="text-sm text-center text-[black] mt-1">Brinquedos</p>
           </button>
+
           <button
-            className="h-25 w-25  bg-white rounded-2xl cursor-pointer hover:scale-105"
+            className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105"
             onClick={() => router.push("../categoria_especifica/casa")}
           >
             <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
-            <p className="text-sm text-center text-[black]  mt-1">Casa</p>
+            <p className="text-sm text-center text-[black] mt-1">Casa</p>
           </button>
         </div>
       </div>
@@ -296,7 +302,8 @@ export default function Pag_produtos() {
         )}
 
         <h1 className="text-xl font-semibold mb-4">Todos os Produtos</h1>
-        {renderProdutosGerais("", produtosGerais)}
+        {renderProdutosGerais(produtosGerais)}
+
         {renderPaginationButtons()}
       </div>
     </>
