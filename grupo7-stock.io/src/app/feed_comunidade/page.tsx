@@ -9,7 +9,7 @@ import ModalUsuario from "../components/Moldal_usuario";
 type UsuarioParacard = {
     id: number;
     nome: String;
-    Foto_Perfil_URL?: string;
+    foto_perfil_URL?: string;
 }
 
 const Itens_por_pagina = 20;
@@ -115,7 +115,7 @@ export default function Feed_comunidade() {
                                     key={usuario.id}
                                     id={usuario.id}
                                     nome={String(usuario.name)}
-                                    Foto_Perfil_URL={usuario.Foto_Perfil_URL}
+                                    Foto_Perfil_URL={usuario.foto_perfil_URL}
                                 />
                             ))}
                         </div>
