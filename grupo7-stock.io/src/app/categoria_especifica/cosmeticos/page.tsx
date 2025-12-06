@@ -153,7 +153,7 @@ export default function FeedPage() {
         </div>
       </div>
 
-      <div className="relative z-10 bg-[#F6F3E4] h-300 pl-10 pt-10">
+      <div className="relative z-10 bg-[#F6F3E4] h-full pl-10 pt-10">
         <div className="flex items-center justify-end pr-5 pb-5">
           <div className="flex flex-col">
             <BarraPesquisa
