@@ -9,8 +9,8 @@ import BarraPesquisa from "../components/barra_pesquisa";
 
 type UsuarioParacard = {
     id: number;
-    name: String;
-    Foto_Perfil_URL?: string;
+    nome: String;
+    foto_perfil_URL?: string;
 }
 
 const Itens_por_pagina = 20;
@@ -106,27 +106,62 @@ export default function Feed_comunidade() {
         loadprodutosGeral();
     }, [currentPage]);
 
-    const renderProdutosGerais = (usuarios: UsuarioParacard[]) => (
-        <div className="pt-5">
-            {loading ? (
-                <p className="text-black">Carregando usuarios...</p>
-            ) : usuarios.length === 0 ? (
-                <p className="text-black">Nenhum usuario encontrado.</p>
-            ) : (
-                <div className="grid grid-clos-2 sm-grid-cols-3 lg:grid-cols-5 xl-grid-cols-6  gap-4 p-4">
-                    <h1 className="text-2xl font-bold text-black mb-4 col-span-full">Usuarios da Comunidade</h1>
-                    {usuarios.map((usuario) => (
-                        <ModalUsuario
-                            key={usuario.id}
-                            id={usuario.id}
-                            nome={String(usuario.name)}
-                            Foto_Perfil_URL={usuario.Foto_Perfil_URL}
-                        />
-                    ))}
+     const renderProdutosGerais = ( usuarios: UsuarioParacard[]) => (
+                <div className="pt-5">
+                    {loading ? (
+                        <p className="text-black">Carregando usuarios...</p>
+                    ) : usuarios.length === 0 ? (
+                        <p className="text-black">Nenhum usuario encontrado.</p>
+                    ) : (
+                        <div className="grid grid-clos-2 sm-grid-cols-3 lg:grid-cols-5 xl-grid-cols-6  gap-4 p-4">
+                            <h1 className="text-2xl font-bold text-black mb-4 col-span-full">Usuarios da Comunidade</h1>
+                            {usuarios.map((usuario) => (
+                                <ModalUsuario
+                                    key={usuario.id}
+                                    id={usuario.id}
+                                    nome={String(usuario.name)}
+                                    Foto_Perfil_URL={usuario.foto_perfil_URL}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
     );
+
+
+    return (
+        <div>
+            <Navbar />
+            <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
+                <div>
+                    <h1 className="text-4xl font-bold pl-20 pt-15">CONHEÇA novas ideias,</h1>
+                    <h1 className="text-4xl font-bold pl-45 pb-10">em 1 so lugar!</h1>
+                </div>
+
+                <div className="h-full relative ml-8">
+                    <img src="/images/Mascote4.png" className="w-130 h-130 object-contain pr-20" />
+                </div>
+
+            </div>
+            <div className=" relative z-10 bg-[#F6F3E4] h-full  pl-10 pt-10 ">
+                <div className="flex items-center justify-end pr-10 pb-5">
+                    <BarraPesquisa
+                        dadosOriginais={UsuariosOriginais}
+                        setDadosFiltrados={setUsuarios}
+                        chave="name"
+                        placeholder="Buscar usuários..."
+                    />
+                </div>
+
+
+                {renderProdutosGerais(Usuarios)}
+                {renderPaginationButtons()}
+            </div>
+        </div>
+    )
+}
 
 
     return (

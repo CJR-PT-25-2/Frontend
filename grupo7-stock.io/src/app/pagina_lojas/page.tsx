@@ -117,7 +117,7 @@ export default function Home() {
         ) : lista.length === 0 ? (
             <p>Nenhuma loja encontrada.</p>
         ) : (
-            <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
+            <div className="flex grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {lista.map(loja => (
                     <Sticker_loja
                         key={loja.id}
