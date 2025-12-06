@@ -200,7 +200,7 @@ return (
               </button>
               <span className="text-sm">|</span>
               <span className="text-sm">
-                Vendido por:    
+                Vendido por:{" "}    
                 <a 
                   href={`/loja/${produto.Loja.id}`} 
                   className="text-[#325862] hover:underline font-medium"
@@ -236,12 +236,12 @@ return (
             </div>
 
             
-            <button
+            {/*<button
               className="w-full md:w-3/4 py-4 bg-[#325862] text-white text-xl font-semibold rounded-xl shadow-lg hover:bg-[#2b4c53] transition disabled:bg-gray-400"
               disabled={produto.estoque <= 0}
             >
               Adicionar ao Carrinho
-            </button>
+            </button>*/}
               {user?.id && !isOwner && (
                 <button
                   onClick={() => router.push(`/produto/${produto.id}/adicionar_comentario`)}
