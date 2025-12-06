@@ -26,7 +26,7 @@ type ProdutoParacard = {
 
 const Categoria_id_Casa = 1;
 const Categoria_id_Jogos = 38;
-const Itens_por_pagina = 20;
+const Itens_por_pagina = 15;
 
 export default function Pag_produtos() {
   const router = useRouter();
@@ -34,6 +34,7 @@ export default function Pag_produtos() {
   const [produtosGerais, setProdutosGerais] = useState<ProdutoParacard[]>([]);
   const [produtosCasa, setProdutosCasa] = useState<ProdutoParacard[]>([]);
   const [produtosJogos, setProdutosJogos] = useState<ProdutoParacard[]>([]);
+  const [totalProdutos, setTotalProdutos] = useState(0);
 
   const [loading, setLoading] = useState(true);
 
@@ -100,6 +101,7 @@ export default function Pag_produtos() {
       console.error("Erro ao buscar preço máximo inicial", e);
     }
   };
+  
 
   const fetchProdutosPaginados = async ({
   page = currentPage,
