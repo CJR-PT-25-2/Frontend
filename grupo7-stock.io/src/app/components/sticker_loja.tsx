@@ -37,7 +37,7 @@ export default function Sticker_loja({
         <div className="text-black  font-semibold text-lg mb-2 items-start">
                 {nome}
          </div>
-          <div className="text-[#d6993c]  font-semibold text-lg mb-2 items-start cursor-pointer ">
+          <div className="text-[#d6993c]  font-semibold text-lg mb-2 items-start  ">
                 {categoria}
          </div>
 

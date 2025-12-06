@@ -299,7 +299,7 @@ export default function FeedPage() {
           </button>
 
           <button
-            onClick={() => filtrarCategoria(14)}
+            onClick={() => filtrarCategoria(9)}
             className={`h-10 w-20  rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 14 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
             Outros
           </button>
