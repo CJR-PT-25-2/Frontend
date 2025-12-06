@@ -103,6 +103,7 @@ export default function FeedPage() {
 ]);
 
 
+        console.log("Filtrados:", filtrados);
 
     const filtrarCategoria = (subId: number) => {
         setFiltroAtivoId(subId);

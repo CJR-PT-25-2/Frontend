@@ -26,7 +26,6 @@ type ProdutoParacard = {
 const Itens_por_pagina = 20;
 
 
-
 export default function FeedPage() {
     const [produtos, setProdutos] = useState<ProdutoParacard[]>([]);
     const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>([]);
