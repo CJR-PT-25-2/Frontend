@@ -28,7 +28,7 @@ type ProdutoParacard = {
 
 const Categoria_id_Casa = 1;
 const Categoria_id_Jogos = 38;
-const Itens_por_pagina = 15;
+const Itens_por_pagina = 18;
 
 export default function Pag_produtos() {
   const router = useRouter();
