@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
 import BarraPesquisa from "@/app/components/barra_pesquisa";
-import { useRouter } from "next/navigation";
 import Caixa_prod from "@/app/components/caixinha_produto";
+import { useRouter } from "next/navigation";
 import { FaAngleDown } from "react-icons/fa";
 
 type ProdutoParacard = {
@@ -59,6 +59,18 @@ export default function FeedPage() {
   };
 
   useEffect(() => {
+    api
+      .get("/produto/categoria_pai/49")
+      .then((res) => {
+        console.log("Produtos recebidos:", res.data);
+        setProdutosOriginais(res.data);
+        setProdutos(res.data);
+      })
+      .catch((err) => console.error("Erro ao carregar Eletrônicos:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
     let list = [...produtosOriginais];
     if (filtroAtivoId !== 0) {
       list = list.filter(
@@ -109,21 +121,8 @@ export default function FeedPage() {
     return notas.reduce((s: number, n: number) => s + n, 0) / notas.length;
   };
 
-  useEffect(() => {
-    api
-      .get("/produto/categoria_pai/45")
-      .then((res) => {
-        console.log("Produtos recebidos:", res.data);
-        setProdutosOriginais(res.data);
-        setProdutos(res.data);
-      })
-      .catch((err) => console.error("Erro ao carregar Jogos:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
   const filtrarCategoria = (subId: number) => {
-    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
-    setFiltroAtivoId(subId); // <-- Adicione esta linha
+    setFiltroAtivoId(subId);
 
     console.log("Filtrando categoria:", subId);
 
@@ -141,8 +140,8 @@ export default function FeedPage() {
       <Navbar />
       <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
         <div className=" text-white">
-          <h1 className="text-4xl leading-snug pl-45 pt-15 ">
-            O UNIVERSO dos <strong className="font-bold">games</strong>,
+          <h1 className="text-4xl leading-snug pl-30 pt-15 ">
+            O UNIVERSO da <strong className="font-bold">variedade</strong>,
           </h1>
           <h1 className="text-4xl leading-snug pl-70 pb-10">em um só lugar!</h1>
         </div>
@@ -155,7 +154,7 @@ export default function FeedPage() {
         </div>
       </div>
 
-      <div className="relative z-10 bg-[#F6F3E4] h-full pl-10 pt-10">
+      <div className="relative z-10 bg-[#F6F3E4] h-full h-min-200 pl-10 pt-10">
         <div className="flex items-center justify-end pr-5 pb-5">
           <div className="flex flex-col">
             <BarraPesquisa
@@ -262,42 +261,16 @@ export default function FeedPage() {
         </div>
 
         <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
+          
           <button
-            onClick={() => filtrarCategoria(0)}
-            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 0
+            onClick={() => filtrarCategoria(50)}
+            className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
+              filtroAtivoId === 44
                 ? "bg-[#982829] text-white font-bold  "
                 : "text-[#982829] bg-white"
             }`}
           >
-            Todos
-          </button>
-
-          <button
-            onClick={() => filtrarCategoria(46)}
-            className={`h-10 w-25 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 46
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
-          >
-            Eletrônicos
-          </button>
-
-          <button
-            onClick={() => filtrarCategoria(47)}
-            className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 47
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
-          >
-            Tabuleiros
-          </button>
-
-          <button onClick={() => filtrarCategoria(9)}
-            className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 48 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-            Outros
+            Diversos
           </button>
         </div>
 
