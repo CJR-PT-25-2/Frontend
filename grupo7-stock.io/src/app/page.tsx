@@ -17,6 +17,7 @@ import Sticker_loja from "./components/sticker_loja";
 import api from "@/lib/api";
 import BarraPesquisa from "./components/barra_pesquisa";
 import BarraFiltro from "./components/Filtro";
+import { FaBox } from "react-icons/fa6";
 
 type ProdutoParacard = {
     id: number;
@@ -520,7 +521,7 @@ export default function Home() {
                     <>
                         <h1 className="text-black text-2xl font-bold"> Categorias </h1>
 
-                        <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
+                        <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-10">
                             <button onClick={() => router.push('../categoria_especifica/mercado')} className=" cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
                                 <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
                                 <p className="text-sm text-center text-black mt-1">Mercado</p>
@@ -560,7 +561,13 @@ export default function Home() {
                                 <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
                                 <p className="text-sm text-center text-black mt-1">Casa</p>
                             </button>
+
+                            <button onClick={() => router.push('../categoria_especifica/outros')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <FaBox size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Outros</p>
+                            </button>
                         </div>
+                        
 
                         {renderProdutos("Produtos de Mercado", produtosMercado)}
                         {renderProdutos("Produtos de Farmácia", produtosFarmacia)}

@@ -10,6 +10,8 @@ import { FaHouseChimneyWindow } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import Caixa_prod from "../components/caixinha_produto";
 import api from "@/lib/api";
+import { FaBox } from "react-icons/fa6";
+
 
 type ProdutoParacard = {
   id: number;
@@ -205,6 +207,11 @@ export default function Pag_produtos() {
           <button className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push("../categoria_especifica/casa")}>
             <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
             <p className="text-sm text-center text-black mt-1">Casa</p>
+          </button>
+
+          <button className="h-25 w-25 bg-white rounded-2xl cursor-pointer hover:scale-105" onClick={() => router.push("../categoria_especifica/outros")}>
+            <FaBox size={40} className="mx-auto mt-2 text-[#982829]" />
+            <p className="text-sm text-center text-black mt-1">Outros</p>
           </button>
         </div>
       </div>
