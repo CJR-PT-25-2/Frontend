@@ -106,8 +106,8 @@ export default function Feed_comunidade() {
         loadprodutosGeral();
     }, [currentPage]);
 
-     const renderProdutosGerais = ( usuarios: UsuarioParacard[]) => (
-                <div className="pt-5">
+    const renderProdutosGerais = ( usuarios: UsuarioParacard[]) => (
+        <div className="pt-5">
                     {loading ? (
                         <p className="text-black">Carregando usuarios...</p>
                     ) : usuarios.length === 0 ? (
@@ -126,9 +126,8 @@ export default function Feed_comunidade() {
                         </div>
                     )}
                 </div>
-            )}
-        </div>
     );
+   
 
 
     return (
@@ -161,39 +160,7 @@ export default function Feed_comunidade() {
             </div>
         </div>
     )
-}
 
-
-    return (
-        <div>
-            <Navbar />
-            <div className="flex justify-center items-center h-60 bg-[#000000] text-white">
-                <div>
-                    <h1 className="text-4xl font-bold pl-20 pt-15">CONHEÇA novas ideias,</h1>
-                    <h1 className="text-4xl font-bold pl-45 pb-10">em 1 so lugar!</h1>
-                </div>
-
-                <div className="h-full relative ml-8">
-                    <img src="/images/Mascote4.png" className="w-130 h-130 object-contain pr-20" />
-                </div>
-
-            </div>
-            <div className=" relative z-10 bg-[#F6F3E4] h-full  pl-10 pt-10 ">
-                <div className="flex items-center justify-end pr-10 pb-5">
-                    <BarraPesquisa
-                        dadosOriginais={UsuariosOriginais}
-                        setDadosFiltrados={setUsuarios}
-                        chave="name"
-                        placeholder="Buscar usuários..."
-                    />
-                </div>
-
-
-                {renderProdutosGerais(Usuarios)}
-                {renderPaginationButtons()}
-            </div>
-        </div>
-    )
 }
 
 

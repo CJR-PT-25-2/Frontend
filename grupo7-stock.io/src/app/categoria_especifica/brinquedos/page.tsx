@@ -106,7 +106,7 @@ export default function FeedPage() {
 
  const calcularNota = (p: ProdutoParacard) => {
     if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0)
-      return p.estoque;
+      return -1;
 
     const notas = p.avaliacoes
       .map(

@@ -87,11 +87,6 @@ export default function FeedPage() {
         list = list.filter(p => Number(p.categoria_id) === Number(filtroAtivoId));
     }
     
-    // 2. Aplicar filtro de Busca (se ativo, se a BarraPesquisa n estiver fazendo isso)
-    // Se a BarraPesquisa estiver fazendo isso, podemos pular este passo aqui
-    // Se precisar da busca aqui, você precisará gerenciar `searchTerm` nesta página.
-    
-    // 3. Aplicar Filtro de Preço
     list = list.filter((p) => p.preco <= precoMaximo);
 
     // 4. Aplicar Ordenação por Avaliação
@@ -117,7 +112,6 @@ export default function FeedPage() {
     sortType,
     filtroAtivoId,
     produtosOriginais,
-    // Se a BarraPesquisa não atualizar `produtos` diretamente, adicione `searchTerm` aqui
 ]);
 
     const fetchTodosProdutos = async () => {
@@ -140,7 +134,7 @@ export default function FeedPage() {
   //Filtro por avaliação
   const calcularNota = (p: ProdutoParacard) => {
     if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0)
-      return p.estoque;
+      return -1;
 
     const notas = p.avaliacoes
       .map(
