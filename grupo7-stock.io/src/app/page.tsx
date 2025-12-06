@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "../app/components/navbar";
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { GiFruitBowl } from "react-icons/gi";
 import { GiMedicinePills } from "react-icons/gi";
 import { GiLipstick } from "react-icons/gi";
@@ -25,8 +25,8 @@ type ProdutoParacard = {
     Imagems_produto_URL: string;
     estoque: number;
     Loja: {
-      sticker_url : string;
-      nome: string;
+        sticker_url: string;
+        nome: string;
     }
     avaliacoes?: any[];
 }
@@ -65,20 +65,20 @@ export default function Home() {
     const [produtosModa, setProdutosModa] = useState<ProdutoParacard[]>([]);
     const [produtosOutros, setProdutosOutros] = useState<ProdutoParacard[]>([]);
     const [todosProdutos, setTodosProdutos] = useState<ProdutoParacard[]>([]);
-    
-    
+
+
     const [searchTerm, setSearchTerm] = useState("");
     const [lojasOriginais, setLojasOriginais] = useState<LojaParacard[]>([]);
 
     const [gerarprodutosFiltrados, setGerarProdutosFiltrados] = useState<ProdutoParacard[]>([]);
     const [lojasFiltradas, setLojasFiltradas] = useState<LojaParacard[]>([]);
 
-    const [activeStoreFilterId, setActiveStoreFilterId] = useState<number>(0); 
+    const [activeStoreFilterId, setActiveStoreFilterId] = useState<number>(0);
 
     const [isSearching, setIsSearching] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    
+
     const [precoMaximo, setPrecoMaximo] = useState(1000);
     const [ratingSort, setRatingSort] = useState<"Nenhum" | "Melhor" | "Pior">("Nenhum");
     const [sortType, setSortType] = useState<"Nenhum" | "Mais Recente" | "Mais Antiga">("Nenhum");
@@ -88,47 +88,63 @@ export default function Home() {
     const [precoMaximoReal, setPrecoMaximoReal] = useState(1000);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-    
+
     const aplicarFiltros = () => {
         setPrecoMaximo(pendentePreco);
         setRatingSort(pendenteRating);
         setSortType(pendenteSort);
     };
 
-    
+
     const calcularNota = (p: ProdutoParacard) => {
         if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0)
-            return p.estoque;
+            return null;
 
         const notas = p.avaliacoes
-            .map(
-                (a: any) =>
-                a?.nota ??
-                a?.rating ??
-                a?.avaliacao ??
-                null
-            )
-            .filter((v: any) => typeof v === "number");
+            .map(a => a?.nota ?? a?.rating ?? a?.avaliacao ?? null)
+            .filter(v => typeof v === "number");
 
-        if (notas.length === 0) return p.estoque;
-        return notas.reduce((s: number, n: number) => s + n, 0) / notas.length;
+        if (notas.length === 0) return null;
+
+        return notas.reduce((s, n) => s + n, 0) / notas.length;
     };
 
-    
+
     const applyFiltersAndSorting = (list: ProdutoParacard[]): ProdutoParacard[] => {
         let filteredList = [...list];
 
-        
+
         filteredList = filteredList.filter((p) => p.preco <= precoMaximo);
 
-        
+
         if (ratingSort === "Melhor") {
-            filteredList.sort((a, b) => calcularNota(b) - calcularNota(a));
-        } else if (ratingSort === "Pior") {
-            filteredList.sort((a, b) => calcularNota(a) - calcularNota(b));
+            filteredList.sort((a, b) => {
+                const notaA = calcularNota(a);
+                const notaB = calcularNota(b);
+
+                if (notaB === null && notaA === null) return 0;
+                if (notaB === null) return -1; // sem avaliação → vai pro fim
+                if (notaA === null) return 1;
+
+                return notaB - notaA; // maior nota primeiro
+            });
+        }
+        else if (ratingSort === "Pior") {
+            filteredList.sort((a, b) => {
+                const notaA = calcularNota(a);
+                const notaB = calcularNota(b);
+
+                if (notaA === null && notaB === null) return 0;
+                if (notaA === null) return -1; // sem avaliação → vai pro começo
+                if (notaB === null) return 1;
+
+                return notaA - notaB; // menor nota primeiro
+            });
         }
 
-        
+
+
+
         if (sortType === "Mais Recente") {
             filteredList.sort((a, b) => b.id - a.id);
         } else if (sortType === "Mais Antiga") {
@@ -142,19 +158,19 @@ export default function Home() {
     const pegarValorAninhado = (obj: any, caminho: string) =>
         caminho.split(".").reduce((acc, key) => acc?.[key], obj);
 
-     const handleStoreCategoryFilter = (id: number) => {
-        setActiveStoreFilterId(id); 
+    const handleStoreCategoryFilter = (id: number) => {
+        setActiveStoreFilterId(id);
 
         if (id === 0) {
             setLojasFiltradas(lojasOriginais);
             return;
         }
 
-        const filtradas = lojasOriginais.filter(loja => 
+        const filtradas = lojasOriginais.filter(loja =>
             loja.categoria && loja.categoria.id === id
         );
 
-        setLojasFiltradas(filtradas); 
+        setLojasFiltradas(filtradas);
     };
 
     const handleUniversalSearch = (termo: string) => {
@@ -176,8 +192,8 @@ export default function Home() {
                 return String(valor ?? "").toLowerCase().includes(t);
             })
         );
-        
-        
+
+
         const produtosFinaisFiltrados = applyFiltersAndSorting(produtosComTermoDeBusca);
 
         const chavesLoja = ["nome", "categoria.nome"];
@@ -197,7 +213,7 @@ export default function Home() {
         const load = async () => {
             setLoading(true);
 
-            
+
             const [res1, res2, res3, res4, res5, res6, res7, res8, res9] = await Promise.all([
                 api.get(`/produto/categoria_pai/${Categoria_id_Casa}`),
                 api.get(`/produto/categoria_pai/${Categoria_id_Jogos}`),
@@ -209,17 +225,17 @@ export default function Home() {
                 api.get(`/produto/categoria_pai/${Categoria_id_Farmacia}`),
                 api.get(`/produto/categoria_pai/${Categoria_id_Outros}`)
             ]);
-            
-            
+
+
             const todos = [
-                ...res1.data, 
-                ...res2.data, 
-                ...res3.data, 
-                ...res4.data, 
-                ...res5.data, 
-                ...res6.data, 
-                ...res7.data, 
-                ...res8.data, 
+                ...res1.data,
+                ...res2.data,
+                ...res3.data,
+                ...res4.data,
+                ...res5.data,
+                ...res6.data,
+                ...res7.data,
+                ...res8.data,
                 ...res9.data
             ];
 
@@ -232,11 +248,11 @@ export default function Home() {
             setProdutosBrinquedos(res7.data);
             setProdutosFarmacia(res8.data);
             setProdutosOutros(res9.data);
-            
-            setTodosProdutos(todos); 
+
+            setTodosProdutos(todos);
             setGerarProdutosFiltrados(todos);
-            
-            
+
+
             const max = Math.max(...todos.map((p: any) => p.preco || 0), 1000);
             setPrecoMaximoReal(max);
             setPrecoMaximo(max);
@@ -257,7 +273,7 @@ export default function Home() {
         load();
     }, []);
 
-    
+
     useEffect(() => {
         if (isSearching) {
             handleUniversalSearch(searchTerm);
@@ -265,93 +281,93 @@ export default function Home() {
     }, [precoMaximo, ratingSort, sortType]);
 
 
-const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
-    
-    let listaParaRenderizar = lista;
+    const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
 
-    
-    if (!isSearching) {
-        listaParaRenderizar = applyFiltersAndSorting(lista);
-    } else {
-        
-        listaParaRenderizar = lista;
+        let listaParaRenderizar = lista;
+
+
+        if (!isSearching) {
+            listaParaRenderizar = applyFiltersAndSorting(lista);
+        } else {
+
+            listaParaRenderizar = lista;
+        }
+
+        return (
+            <div className="pt-5">
+                <h1 className="text-xl text-black font-bold mb-4">{titulo}</h1>
+
+                {loading ? (
+                    <p>Carregando...</p>
+                ) : listaParaRenderizar.length === 0 ? (
+                    <p className="text-black">Nenhum item encontrado</p>
+                ) : (
+                    <>
+
+                        {listaParaRenderizar.length > 5 && (
+                            <div className="flex justify-end pr-4 ">
+                                <button
+                                    className="text-[#982829] mt-2 ml-4 cursor-pointer"
+                                    onClick={() => {
+                                        const map: any = {
+                                            "Produtos de Casa": "casa",
+                                            "Produtos de Jogos": "jogos",
+                                            "Produtos de Mercado": "mercado",
+                                            "Produtos de Moda": "moda",
+                                            "Produtos de Beleza": "cosmeticos",
+                                            "Produtos de Farmácia": "remedio",
+                                            "Produtos de Brinquedos": "brinquedos",
+                                            "Produtos de Eletrônicos": "eletronicos",
+                                            "Outros Produtos": "outros"
+                                        };
+                                        router.push(`../categoria_especifica/${map[titulo]}`);
+                                    }}
+                                >
+                                    Ver mais
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex overflow-hidden whitespace-nowrap p-4 space-x-4">
+                            {listaParaRenderizar.slice(0, 6).map(produto => (
+                                <Caixa_prod
+                                    key={produto.id}
+                                    id={produto.id}
+                                    nome={produto.nome}
+                                    preco={produto.preco}
+                                    imagemUrl={produto.Imagems_produto_URL}
+                                    quantidade={produto.estoque}
+                                    lojaURL={produto.Loja?.sticker_url}
+                                    disponivel={produto.estoque > 0}
+                                />
+                            ))}
+                        </div>
+
+                    </>
+                )}
+            </div>
+        );
     }
 
-    return (
-        <div className="pt-5">
-            <h1 className="text-xl text-black font-bold mb-4">{titulo}</h1>
-
-            {loading ? (
-                <p>Carregando...</p>
-            ) : listaParaRenderizar.length === 0 ? (
-                <p className="text-black">Nenhum item encontrado</p>
-            ) : (
-                <>
-
-                {listaParaRenderizar.length > 5 && (
-                        <div className="flex justify-end pr-4 ">
-                        <button
-                            className="text-[#982829] mt-2 ml-4 cursor-pointer"
-                            onClick={() => {
-                                const map: any = {
-                                    "Produtos de Casa": "casa",
-                                    "Produtos de Jogos": "jogos",
-                                    "Produtos de Mercado": "mercado",
-                                    "Produtos de Moda": "moda",
-                                    "Produtos de Beleza": "cosmeticos",
-                                    "Produtos de Farmácia": "remedio",
-                                    "Produtos de Brinquedos": "brinquedos",
-                                    "Produtos de Eletrônicos": "eletronicos",
-                                    "Outros Produtos": "outros"
-                                };
-                                router.push(`../categoria_especifica/${map[titulo]}`);
-                            }}
-                        >
-                            Ver mais
-                        </button>
-                        </div>
-                    )}
-                    <div className="flex overflow-hidden whitespace-nowrap p-4 space-x-4">
-                        {listaParaRenderizar.slice(0, 6).map(produto => (
-                            <Caixa_prod
-                                key={produto.id}
-                                id={produto.id}
-                                nome={produto.nome}
-                                preco={produto.preco}
-                                imagemUrl={produto.Imagems_produto_URL}
-                                quantidade={produto.estoque}
-                                lojaURL={produto.Loja?.sticker_url}
-                                disponivel={produto.estoque > 0}
-                            />
-                        ))}
-                    </div>
-                    
-                </>
-            )}
-        </div>
-    );
-}
-
     const renderLojas = (lista: LojaParacard[]) => (
-    loading ? (
-        <p>Carregando lojas...</p>
-    ) : lista.length === 0 ? (
-        <p className="text-black">Nenhuma loja encontrada...</p>
-    ) : (
-        <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
-            {lista.map(loja => (
-                <Sticker_loja
-                    key={loja.id}
-                    id={loja.id}
-                    nome={String(loja.nome)}
-                    categoria={String(loja.categoria?.nome || "")}
-                    descricao=""
-                    sticker_URL={loja.sticker_url}
-                />
-            ))}
-        </div>
-    )
-);
+        loading ? (
+            <p>Carregando lojas...</p>
+        ) : lista.length === 0 ? (
+            <p className="text-black">Nenhuma loja encontrada...</p>
+        ) : (
+            <div className="flex justify-start overflow-x-auto whitespace-nowrap p-4 space-x-4">
+                {lista.map(loja => (
+                    <Sticker_loja
+                        key={loja.id}
+                        id={loja.id}
+                        nome={String(loja.nome)}
+                        categoria={String(loja.categoria?.nome || "")}
+                        descricao=""
+                        sticker_URL={loja.sticker_url}
+                    />
+                ))}
+            </div>
+        )
+    );
 
     return (
         <>
@@ -375,7 +391,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                     {/* BARRA DE PESQUISA */}
                     <div className="flex text-[#982829] rounded-2xl w-130 h-12 p-2 mb-4">
                         <BarraPesquisa
-                            dadosOriginais={[]} setDadosFiltrados={() => {}}
+                            dadosOriginais={[]} setDadosFiltrados={() => { }}
                             chave={["nome"]}
                             placeholder="Pesquisar produtos, lojas e categorias..."
                             autoFilter={true} onSearch={handleUniversalSearch}
@@ -384,7 +400,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
 
                     {/* AQUI OH FILTRO */}
                     <div className="relative w-128">
-                
+
                         <button
                             className="flex justify-between items-center w-full bg-white p-4 rounded-xl shadow-md border border-gray-200 text-base text-[#982829]"
                             onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -392,13 +408,13 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                             Filtros
                             <FaAngleDown
                                 className={`transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""
-                                  }`}
+                                    }`}
                             />
                         </button>
-                
+
                         {isFilterOpen && (
-                            <div className="absolute top-full right-0 w-full bg-white border border-gray-300 shadow-lg rounded-xl p-4 mt-2 z-50 space-y-3"> 
-                                
+                            <div className="absolute top-full right-0 w-full bg-white border border-gray-300 shadow-lg rounded-xl p-4 mt-2 z-50 space-y-3">
+
                                 <div>
                                     <label className="block text-sm text-[#982829] mb-1">
                                         Preço Máximo:{" "}
@@ -416,7 +432,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                                         className="w-full accent-[#982829]"
                                     />
                                 </div>
-                                
+
 
                                 {/* SELEÇÃO DE AVALIAÇÃO */}
                                 <div>
@@ -453,7 +469,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                                         <option value="Mais Antiga">Mais Antiga</option>
                                     </select>
                                 </div>
-                
+
                                 {/* BOTÃO APLICAR */}
                                 <button
                                     className="w-full bg-[#982829] text-white py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
@@ -464,7 +480,7 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                                 >
                                     Aplicar Filtros
                                 </button>
-                
+
                                 {/* BOTÃO LIMPAR */}
                                 <button
                                     className="w-full bg-gray-300 text-black py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
@@ -472,11 +488,11 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                                         setPendentePreco(precoMaximoReal);
                                         setPendenteRating("Nenhum");
                                         setPendenteSort("Nenhum");
-                
+
                                         setPrecoMaximo(precoMaximoReal);
                                         setRatingSort("Nenhum");
                                         setSortType("Nenhum");
-                
+
                                         setIsFilterOpen(false);
                                     }}
                                 >
@@ -501,77 +517,77 @@ const renderProdutos = (titulo: string, lista: ProdutoParacard[]) => {
                         )}
                     </>
                 ) : (
-                <>
-                    <h1 className="text-black text-2xl font-bold"> Categorias </h1>
+                    <>
+                        <h1 className="text-black text-2xl font-bold"> Categorias </h1>
 
-                    <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
-                        <button onClick={() => router.push('../categoria_especifica/mercado')} className=" cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Mercado</p>
-                        </button>
+                        <div className="flex overflow-x-auto whitespace-nowrap p-4 space-x-15">
+                            <button onClick={() => router.push('../categoria_especifica/mercado')} className=" cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <GiFruitBowl size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Mercado</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/remedio')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black  mt-1">Remédios</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/remedio')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <GiMedicinePills size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black  mt-1">Remédios</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Cosméticos</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/cosmeticos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <GiLipstick size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Cosméticos</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/moda')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Moda</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/moda')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <GiLargeDress size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Moda</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Eletrônicos</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/eletronicos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <FaLaptop size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Eletrônicos</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/jogos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Jogos</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/jogos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <IoGameControllerSharp size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Jogos</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Brinquedos</p>
-                        </button>
+                            <button onClick={() => router.push('../categoria_especifica/brinquedos')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <TbHorseToy size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Brinquedos</p>
+                            </button>
 
-                        <button onClick={() => router.push('../categoria_especifica/casa')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
-                            <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
-                            <p className="text-sm text-center text-black mt-1">Casa</p>
-                        </button>
-                    </div>
+                            <button onClick={() => router.push('../categoria_especifica/casa')} className="cursor-pointer h-25 w-25 bg-white rounded-2xl hover:scale-105">
+                                <FaHouseChimneyWindow size={40} className="mx-auto mt-2 text-[#982829]" />
+                                <p className="text-sm text-center text-black mt-1">Casa</p>
+                            </button>
+                        </div>
 
-                    {renderProdutos("Produtos de Mercado", produtosMercado)}
-                    {renderProdutos("Produtos de Farmácia", produtosFarmacia)}
-                    {renderProdutos("Produtos de Beleza", produtosBeleza)}
-                    {renderProdutos("Produtos de Moda", produtosModa)}
-                    {renderProdutos("Produtos de Eletrônicos", produtosEletronicos)}
-                    {renderProdutos("Produtos de Jogos", produtosJogos)}
-                    {renderProdutos("Produtos de Brinquedos", produtosBrinquedos)}
-                    {renderProdutos("Produtos de Casa", produtosCasa)}
-                    {renderProdutos("Outros Produtos", produtosOutros)}
+                        {renderProdutos("Produtos de Mercado", produtosMercado)}
+                        {renderProdutos("Produtos de Farmácia", produtosFarmacia)}
+                        {renderProdutos("Produtos de Beleza", produtosBeleza)}
+                        {renderProdutos("Produtos de Moda", produtosModa)}
+                        {renderProdutos("Produtos de Eletrônicos", produtosEletronicos)}
+                        {renderProdutos("Produtos de Jogos", produtosJogos)}
+                        {renderProdutos("Produtos de Brinquedos", produtosBrinquedos)}
+                        {renderProdutos("Produtos de Casa", produtosCasa)}
+                        {renderProdutos("Outros Produtos", produtosOutros)}
 
 
 
-                    <h1 className="pt-10 text-black text-2xl font-bold">Lojas</h1>
-                     <div className="pb-5 justify-end flex pr-5 ">
-                         <BarraFiltro 
-                            onFilter={handleStoreCategoryFilter} 
-                            filtroAtivoId={activeStoreFilterId}
-                        />
-                    </div>
-                     {renderLojas(lojasFiltradas)}
-                </>
+                        <h1 className="pt-10 text-black text-2xl font-bold">Lojas</h1>
+                        <div className="pb-5 justify-end flex pr-5 ">
+                            <BarraFiltro
+                                onFilter={handleStoreCategoryFilter}
+                                filtroAtivoId={activeStoreFilterId}
+                            />
+                        </div>
+                        {renderLojas(lojasFiltradas)}
+                    </>
                 )}
 
-                    {/* AQUI TERMINA O CONTEÚDO DA DIV bg-[#F6F3E4] */}
-                    </div>
-            
+                {/* AQUI TERMINA O CONTEÚDO DA DIV bg-[#F6F3E4] */}
+            </div>
+
         </>
     );
 }
