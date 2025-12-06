@@ -6,9 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/app/components/navbar";
 import api from "@/lib/api";
 
-
-import EditStoreModal from "@/app/components/EditStoreModal"; 
-import EditProductModal from "@/app/components/EditProductModal"; 
+import EditStoreModal from "@/app/components/EditStoreModal";
+import EditProductModal from "@/app/components/EditProductModal";
 import AddProductModal from "@/app/components/AddProductModal";
 
 interface Loja {
@@ -33,10 +32,10 @@ const renderStars = (rating: number, size: string = "text-3xl") => {
   const emptyStars = 5 - fullStars;
 
   return (
-    <div className={`flex justify-center ${size} text-yellow-400`}>
+    <span className={`flex justify-center ${size} text-yellow-400`}>
       {"★".repeat(fullStars)}
       {"☆".repeat(emptyStars)}
-    </div>
+    </span>
   );
 };
 
@@ -47,12 +46,10 @@ export default function LojaPage() {
 
   const [loja, setLoja] = useState<Loja | null>(null);
 
-  
   const [modalLojaAberto, setModalLojaAberto] = useState(false);
-  const [produtoIdAEditar, setProdutoIdAEditar] = useState<number | null>(null); 
+  const [produtoIdAEditar, setProdutoIdAEditar] = useState<number | null>(null);
   const [modalProdutoAberto, setModalProdutoAberto] = useState(false);
 
-  
   const fetchLoja = useCallback(() => {
     if (!id) return;
     fetch(`http://localhost:3001/loja/${id}`)
@@ -67,71 +64,70 @@ export default function LojaPage() {
     fetchLoja();
   }, [fetchLoja]);
 
-  
   const handleStoreUpdate = (lojaAtualizada: Loja) => {
-      setLoja(prev => (prev ? { ...prev, ...lojaAtualizada } : null));
-      setModalLojaAberto(false);
+    setLoja((prev) => (prev ? { ...prev, ...lojaAtualizada } : null));
+    setModalLojaAberto(false);
   };
-  
-  
+
   const handleProductUpdate = (produtoAtualizado: any) => {
-      setLoja(prevLoja => {
-          if (!prevLoja) return null;
+    setLoja((prevLoja) => {
+      if (!prevLoja) return null;
 
-          
-          const produtosAtualizados = prevLoja.produtos.map((p: any) => 
-              p.id === produtoAtualizado.id ? produtoAtualizado : p
-          );
+      const produtosAtualizados = prevLoja.produtos.map((p: any) =>
+        p.id === produtoAtualizado.id ? produtoAtualizado : p
+      );
 
-          return { ...prevLoja, produtos: produtosAtualizados };
-      });
-      setProdutoIdAEditar(null); 
+      return { ...prevLoja, produtos: produtosAtualizados };
+    });
+    setProdutoIdAEditar(null);
   };
 
   const handleProductAddSuccess = (newProduto: any) => {
-      setLoja(prevLoja => {
+    setLoja((prevLoja) => {
+      if (!prevLoja) return null;
+      return {
+        ...prevLoja,
+        produtos: [...prevLoja.produtos, newProduto],
+      };
+    });
+    setModalProdutoAberto(false);
+  };
+
+  const excluirProduto = useCallback(
+    async (produtoId: number, produtoNome: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!loja) return;
+
+      const confirmado = window.confirm(
+        `Tem certeza que deseja excluir o produto "${produtoNome}"?`
+      );
+      if (!confirmado) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        await api.delete(`/produto/${produtoId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        alert(`Produto "${produtoNome}" excluído!`);
+
+        setLoja((prevLoja) => {
           if (!prevLoja) return null;
           return {
-              ...prevLoja,
-              produtos: [...prevLoja.produtos, newProduto], 
+            ...prevLoja,
+            produtos: prevLoja.produtos.filter((p) => p.id !== produtoId),
           };
-      });
-      setModalProdutoAberto(false); 
-  };
-  
-  const excluirProduto = useCallback(async (produtoId: number, produtoNome: string, e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (!loja) return;
-
-    const confirmado = window.confirm(
-      `Tem certeza que deseja excluir o produto "${produtoNome}"?`
-    );
-    if (!confirmado) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/produto/${produtoId}`, { headers: { Authorization: `Bearer ${token}` } });
-      
-      alert(`Produto "${produtoNome}" excluído!`);
-
-      
-      setLoja((prevLoja) => {
-        if (!prevLoja) return null;
-        return {
-          ...prevLoja,
-          produtos: prevLoja.produtos.filter((p) => p.id !== produtoId),
-        };
-      });
-
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao excluir o produto.");
-    }
-  }, [loja]);
-
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao excluir o produto.");
+      }
+    },
+    [loja]
+  );
 
   if (!loja)
-    return <p className="text-white text-center mt-10">Carregando...</p>;
+    return <p className="text-black text-center mt-10">Carregando...</p>;
 
   const isOwner = user && Number(user.id) === loja.donoId;
 
@@ -147,8 +143,10 @@ export default function LojaPage() {
     <>
       <Navbar />
 
-      <div className="min-h-screen bg-neutral-900 text-white pb-20">
-        {/* BANNER */}
+      {/* FUNDO CLARO + LIMPO */}
+      <div className="min-h-screen bg-neutral-200 text-black pb-20">
+
+        {/* BANNER (CONTINUA ESCURO E DESTACADO) */}
         <div className="w-full h-[400px] relative overflow-hidden flex items-center justify-center">
           <img
             src={
@@ -163,10 +161,10 @@ export default function LojaPage() {
           <div className="absolute inset-0 bg-black opacity-40"></div>
 
           <div className="relative z-10 text-center -mt-8">
-            <h1 className="text-6xl font-extrabold tracking-tight shadow-text-md">
+            <h1 className="text-6xl font-extrabold tracking-tight text-white drop-shadow-lg">
               {loja.nome}
             </h1>
-            <p className="text-xl font-medium text-gray-300 mt-2 lowercase first-letter:uppercase">
+            <p className="text-xl font-medium text-gray-200 mt-2 lowercase first-letter:uppercase">
               {loja.categoria?.nome || "Sem Categoria"}
             </p>
           </div>
@@ -174,20 +172,20 @@ export default function LojaPage() {
           {isOwner && (
             <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
               <button
-                onClick={() => setModalLojaAberto(true)} 
+                onClick={() => setModalLojaAberto(true)}
                 className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
                 title="Editar Loja"
               >
                 🖉
               </button>
 
-                <button
-                  onClick={() => setModalProdutoAberto(true)} 
-                  className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
-                  title="Adicionar Produto"
-                >
-                  ➕
-                </button>
+              <button
+                onClick={() => setModalProdutoAberto(true)}
+                className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
+                title="Adicionar Produto"
+              >
+                ➕
+              </button>
             </div>
           )}
 
@@ -205,17 +203,18 @@ export default function LojaPage() {
         {/* CONTEÚDO */}
         <div className="px-6 md:px-20 lg:px-40 mt-10">
           <div className="flex flex-col md:flex-row gap-10">
+
             {/* DESCRIÇÃO */}
-          <div className="w-full md:w-1/3 p-4 bg-neutral-800 rounded-xl shadow-inner shadow-neutral-700">
-            <h2 className="text-xl font-semibold mb-2">Sobre {loja.nome}</h2>
-            <p className="text-gray-400 text-sm break-words"> 
-              {loja.descricao ||
-                "Esta loja não possui uma descrição detalhada."}
-            </p>
-          </div>
+            <div className="w-full md:w-1/3 p-4 bg-neutral-300 rounded-xl shadow-md border border-neutral-400">
+              <h2 className="text-xl font-semibold mb-2">Sobre {loja.nome}</h2>
+              <p className="text-gray-700 text-sm break-words">
+                {loja.descricao ||
+                  "Esta loja não possui uma descrição detalhada."}
+              </p>
+            </div>
 
             {/* AVALIAÇÕES */}
-            <div className="w-full md:w-2/3 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
+            <div className="w-full md:w-2/3 bg-neutral-300 p-6 rounded-xl shadow-md border border-neutral-400">
               <h2 className="text-3xl font-semibold text-center mb-4">
                 Reviews e Comentários
               </h2>
@@ -234,17 +233,16 @@ export default function LojaPage() {
               )}
 
               <div className="flex justify-center items-baseline gap-4 mb-4">
-                <p className="text-6xl font-extrabold text-yellow-400">
+                <p className="text-6xl font-extrabold text-yellow-500">
                   {media}
                 </p>
                 {renderStars(Number(media), "text-4xl")}
               </div>
 
-              <p className="text-sm text-gray-500 text-center">
+              <p className="text-sm text-gray-600 text-center">
                 Baseado em {loja.avaliacoes.length} avaliações
               </p>
 
-              {/* AVALIAÇÕES CLICÁVEIS */}
               <div className="mt-8 flex overflow-x-auto space-x-4 pb-4">
                 {loja.avaliacoes.length > 0 ? (
                   loja.avaliacoes.map((a, index) => (
@@ -255,21 +253,21 @@ export default function LojaPage() {
                           `/loja/${loja.id}/avaliacoes/${a.id ?? index}`
                         )
                       }
-                      className="bg-neutral-900 flex-shrink-0 w-64 p-4 rounded-xl shadow-md border border-neutral-700 cursor-pointer hover:border-yellow-500 hover:bg-neutral-800 transition-all duration-200"
+                      className="bg-white flex-shrink-0 w-64 p-4 rounded-xl shadow border border-neutral-300 cursor-pointer hover:border-yellow-500 hover:bg-neutral-100 transition-all duration-200"
                     >
-                      <p className="text-yellow-400 text-lg">
+                      <p className="text-yellow-500 text-lg">
                         {renderStars(a.nota, "text-2xl")}
                       </p>
-                      <p className="text-gray-200 mt-1 line-clamp-3 text-sm">
+                      <p className="text-gray-800 mt-1 line-clamp-3 text-sm">
                         {a.comentario}
                       </p>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-600 mt-2">
                         — {a.usuario?.name ?? "Usuário Anônimo"}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-gray-400 w-full">
+                  <p className="text-center text-gray-600 w-full">
                     Essa loja ainda não possui avaliações.
                   </p>
                 )}
@@ -278,7 +276,7 @@ export default function LojaPage() {
               {loja.avaliacoes.length > 3 && (
                 <button
                   onClick={() => router.push(`/loja/${loja.id}/avaliacoes`)}
-                  className="text-sm text-green-400 hover:text-green-300 transition block ml-auto mt-4"
+                  className="text-sm text-green-700 hover:text-green-500 transition block ml-auto mt-4"
                 >
                   ver mais
                 </button>
@@ -288,7 +286,7 @@ export default function LojaPage() {
 
           {/* PRODUTOS */}
           <div className="mt-16">
-            <h2 className="text-3xl font-bold mb-6 border-b pb-2 border-neutral-700">
+            <h2 className="text-3xl font-bold mb-6 border-b pb-2 border-neutral-400">
               Produtos
             </h2>
 
@@ -296,7 +294,7 @@ export default function LojaPage() {
               {loja.produtos.map((p: any) => (
                 <div
                   key={p.id}
-                  className="bg-neutral-800 rounded-xl hover:bg-neutral-700 cursor-pointer transition shadow-xl overflow-hidden relative group" 
+                  className="bg-white rounded-xl hover:bg-neutral-100 cursor-pointer transition shadow-lg border border-neutral-300 overflow-hidden relative group"
                 >
                   <div onClick={() => router.push(`/produto/${p.id}`)}>
                     <img
@@ -309,23 +307,21 @@ export default function LojaPage() {
                       alt={p.nome}
                     />
                     <div className="p-3">
-                      <p className="mt-1 text-base font-semibold truncate">
+                      <p className="mt-1 text-base font-semibold truncate text-black">
                         {p.nome}
                       </p>
-                      <p className="text-lg text-green-400 font-bold">
+                      <p className="text-lg text-green-600 font-bold">
                         R$ {Number(p.preco).toFixed(2)}
                       </p>
                     </div>
                   </div>
 
-                  {/* BOTÕES DE EDIÇÃO/EXCLUSÃO (Apenas para o dono) */}
                   {isOwner && (
                     <div className="absolute top-2 right-2 flex gap-1 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-                      {/* LÁPIS (EDITAR) */}
                       <button
                         onClick={(e) => {
-                          e.stopPropagation(); 
-                          setProdutoIdAEditar(p.id); 
+                          e.stopPropagation();
+                          setProdutoIdAEditar(p.id);
                         }}
                         className="w-7 h-7 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-200 transition"
                         title="Editar Produto"
@@ -333,9 +329,10 @@ export default function LojaPage() {
                         🖉
                       </button>
 
-                      {/* LIXEIRA (DELETAR) */}
                       <button
-                        onClick={(e) => excluirProduto(p.id, p.nome, e)}
+                        onClick={(e) =>
+                          excluirProduto(p.id, p.nome, e)
+                        }
                         className="w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 transition"
                         title="Excluir Produto"
                       >
@@ -347,7 +344,7 @@ export default function LojaPage() {
               ))}
 
               {loja.produtos.length === 0 && (
-                <p className="text-gray-400 col-span-full text-center py-10">
+                <p className="text-gray-600 col-span-full text-center py-10">
                   Nenhum produto foi adicionado ainda.
                 </p>
               )}
@@ -355,8 +352,7 @@ export default function LojaPage() {
           </div>
         </div>
       </div>
-      
-      {/* MODAL 1: EDIÇÃO DE LOJA (CONTROLADO) */}
+
       {modalLojaAberto && (
         <EditStoreModal
           id={String(loja.id)}
@@ -364,8 +360,7 @@ export default function LojaPage() {
           onSaveSuccess={handleStoreUpdate}
         />
       )}
-      
-      {/* MODAL 2: EDIÇÃO DE PRODUTO (CONTROLADO) */}
+
       {produtoIdAEditar !== null && (
         <EditProductModal
           id={String(produtoIdAEditar)}
@@ -374,7 +369,6 @@ export default function LojaPage() {
         />
       )}
 
-      {/* MODAL 3: ADICIONAR PRODUTO */}
       {modalProdutoAberto && loja && (
         <AddProductModal
           lojaId={String(loja.id)}
@@ -382,7 +376,6 @@ export default function LojaPage() {
           onSuccess={handleProductAddSuccess}
         />
       )}
-
     </>
   );
 }

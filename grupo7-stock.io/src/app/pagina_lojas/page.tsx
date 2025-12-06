@@ -159,7 +159,7 @@ export default function Home() {
                         <BarraPesquisa
                             dadosOriginais={[]} setDadosFiltrados={() => {}}
                             chave={["nome"]}
-                            placeholder="Pesquisar produtos, lojas e categorias..."
+                            placeholder="Pesquisar por lojas..."
                             autoFilter={true} onSearch={handleUniversalSearch}
                         />
                     </div>

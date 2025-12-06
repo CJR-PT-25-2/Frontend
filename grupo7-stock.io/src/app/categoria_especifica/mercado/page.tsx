@@ -4,21 +4,21 @@ import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import api from "@/lib/api";
 import BarraPesquisa from "@/app/components/barra_pesquisa";
+import Caixa_prod from "@/app/components/caixinha_produto";
+import { useRouter } from "next/navigation";
 import { FaAngleDown } from "react-icons/fa";
 
 
-interface Produto {
+type ProdutoParacard = {
     id: number;
     nome: string;
     preco: number;
+    Imagems_produto_URL: string;
     categoria_id: number;
     estoque: number;
-
-    Imagems_produto_URL: string | null;
-    imagem1_url: string | null;
-    imagem2_url: string | null;
-    imagem3_url: string | null;
-    imagem4_url: string | null;
+    Loja: {
+      sticker_url : string;
+    }
 
     avaliacoes?: any[];
 }
@@ -28,14 +28,16 @@ const Itens_por_pagina = 20;
 
 
 export default function FeedPage() {
-    const [produtos, setProdutos] = useState<Produto[]>([]);
-    const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([]);
-    const [produtosGeraisMercado, setProdutosGeraisMercado] = useState<Produto[]>([]);
+    const [produtos, setProdutos] = useState<ProdutoParacard[]>([]);
+    const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>([]);
+    const [produtosGeraisMercado, setProdutosGeraisMercado] = useState<ProdutoParacard[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroAtivoId, setFiltroAtivoId] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
-      const [totalPages, setTotalPages] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const router = useRouter();
+    const [produtosFiltradosBuscaCategoria, setProdutosFiltradosBuscaCategoria] = useState<ProdutoParacard[]>([]);
 
     //BArra de filtros
     const [precoMaximo, setPrecoMaximo] = useState(1000);
@@ -52,23 +54,21 @@ export default function FeedPage() {
     setPrecoMaximo(pendentePreco);
     setRatingSort(pendenteRating);
     setSortType(pendenteSort);
-    setCurrentPage(1);
   };
 
-const filtrarCategoria = (subId: number) => {
-    // 1. ATUALIZA O ESTADO ATIVO: Isso fará com que o React renderize novamente todos os botões.
-    setFiltroAtivoId(subId); // <-- Adicione esta linha
+    const filtrarCategoria = (subId: number) => {
+        setFiltroAtivoId(subId);
 
-    console.log("Filtrando categoria:", subId);
+        console.log("Filtrando categoria:", subId);
 
-    const filtrados = produtosOriginais.filter(
-        (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
-    );
+        const filtrados = produtosOriginais.filter(
+            (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
+        );
 
-    console.log("Filtrados:", filtrados);
+        console.log("Filtrados:", filtrados);
 
-    setProdutos(filtrados);
-};
+        setProdutos(filtrados);
+    };
 
     useEffect(() => {
         api
@@ -81,6 +81,45 @@ const filtrarCategoria = (subId: number) => {
             .catch((err) => console.error("Erro ao carregar Mercado:", err))
             .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+    let list = [...produtosOriginais];
+    if (filtroAtivoId !== 0) {
+        list = list.filter(p => Number(p.categoria_id) === Number(filtroAtivoId));
+    }
+    
+    // 2. Aplicar filtro de Busca (se ativo, se a BarraPesquisa n estiver fazendo isso)
+    // Se a BarraPesquisa estiver fazendo isso, podemos pular este passo aqui
+    // Se precisar da busca aqui, você precisará gerenciar `searchTerm` nesta página.
+    
+    // 3. Aplicar Filtro de Preço
+    list = list.filter((p) => p.preco <= precoMaximo);
+
+    // 4. Aplicar Ordenação por Avaliação
+    if (ratingSort === "Melhor") {
+        list.sort((a, b) => calcularNota(b) - calcularNota(a));
+    } else if (ratingSort === "Pior") {
+        list.sort((a, b) => calcularNota(a) - calcularNota(b));
+    }
+
+    // 5. Aplicar Ordenação por Adição
+    if (sortType === "Mais Recente") {
+        list.sort((a, b) => b.id - a.id);
+    } else if (sortType === "Mais Antiga") {
+        list.sort((a, b) => a.id - b.id);
+    }
+
+    setProdutos(list); // Atualiza a lista final que é renderizada
+    setCurrentPage(1); // Opcional: Voltar para a página 1 ao aplicar filtros
+
+}, [
+    precoMaximo,
+    ratingSort,
+    sortType,
+    filtroAtivoId,
+    produtosOriginais,
+    // Se a BarraPesquisa não atualizar `produtos` diretamente, adicione `searchTerm` aqui
+]);
 
     const fetchTodosProdutos = async () => {
     try {
@@ -100,7 +139,7 @@ const filtrarCategoria = (subId: number) => {
   };
 
   //Filtro por avaliação
-  const calcularNota = (p: Produto) => {
+  const calcularNota = (p: ProdutoParacard) => {
     if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0)
       return p.estoque;
 
@@ -120,48 +159,31 @@ const filtrarCategoria = (subId: number) => {
 
 
   //Produtos filtrados
-  const produtosFiltrados = () => {
-    let lista = [...produtosGeraisMercado];
+    const applyFiltersAndSorting = (list: ProdutoParacard[]): ProdutoParacard[] => {
+        let filteredList = [...list];
 
+        
+        filteredList = filteredList.filter((p) => p.preco <= precoMaximo);
 
-    if (searchTerm.trim()) {
-      const t = searchTerm.toLowerCase();
-      lista = lista.filter((p) => p.nome.toLowerCase().includes(t));
-    }
-    lista = lista.filter((p) => p.preco <= precoMaximo);
+        
+        if (ratingSort === "Melhor") {
+            filteredList.sort((a, b) => calcularNota(b) - calcularNota(a));
+        } else if (ratingSort === "Pior") {
+            filteredList.sort((a, b) => calcularNota(a) - calcularNota(b));
+        }
 
-    if (ratingSort === "Melhor")
-      lista.sort((a, b) => calcularNota(b) - calcularNota(a));
-    if (ratingSort === "Pior")
-      lista.sort((a, b) => calcularNota(a) - calcularNota(b));
+        
+        if (sortType === "Mais Recente") {
+            filteredList.sort((a, b) => b.id - a.id);
+        } else if (sortType === "Mais Antiga") {
+            filteredList.sort((a, b) => a.id - b.id);
+        }
 
-    if (sortType === "Mais Recente") lista.sort((a, b) => b.id - a.id);
-    if (sortType === "Mais Antiga") lista.sort((a, b) => a.id - b.id);
-
-    return lista;
-  };
-
-  const filtrados = produtosFiltrados();
-  const pages = Math.ceil(filtrados.length / Itens_por_pagina);
-
-  useEffect(() => setTotalPages(pages || 1), [filtrados.length]);
-  
-    const pagina = filtrados.slice(
-      (currentPage - 1) * Itens_por_pagina,
-      currentPage * Itens_por_pagina
-    );
-
-
-    const getImagemProduto = (p: Produto) => {
-        return (
-            p.Imagems_produto_URL ??
-            p.imagem1_url ??
-            p.imagem2_url ??
-            p.imagem3_url ??
-            p.imagem4_url ??
-            "/images/sem-imagem.png"
-        );
+        return filteredList;
     };
+
+    
+   
 
     return (
         <>
@@ -185,7 +207,7 @@ const filtrarCategoria = (subId: number) => {
                 </div>
             </div>
 
-            <div className="relative z-10 bg-[#F6F3E4] h-300 pl-10 pt-10">
+            <div className="relative z-10 bg-[#F6F3E4] h-full min-h-150 pl-10 pt-10">
                 <div className=" items-center flex justify-end pr-5 pb-5">
                      <div className="flex flex-col">
                     <BarraPesquisa
@@ -316,7 +338,7 @@ const filtrarCategoria = (subId: number) => {
 
                     <button
                         onClick={() => filtrarCategoria(7)}
-                        className={`h-10 w-23  rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 7   ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        className={`h-10 w-23  rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 7 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
                         Açougue
                     </button>
 
@@ -360,31 +382,29 @@ const filtrarCategoria = (subId: number) => {
 
 
                 <div className="grid grid-cols-4 gap-6 mt-10">
-                    {loading ? (
-                        <p>Carregando...</p>
-                    ) : produtos.length === 0 ? (
-                        <p>Nenhum produto encontrado.</p>
-                    ) : (
-                        produtos.map((p) => (
-                            <div
-                                key={p.id}
-                                className="bg-white p-4 rounded-xl shadow-md hover:scale-105 transition"
-                            >
-                                <img
-                                    src={getImagemProduto(p)}
-                                    className="w-full h-40 object-cover rounded-lg"
+                          {loading ? (
+                            <p>Carregando...</p>
+                          ) : produtos.length === 0 ? (
+                            <p>Nenhum produto encontrado.</p>
+                          ) : (
+                            produtos.map((p) => (
+                              <div
+                                key={p.id} className="cursor-pointer" onClick={() => router.push(`/produto/${p.id}`)}
+                              >
+                                <Caixa_prod
+                                  id={p.id}
+                                  nome={p.nome}
+                                  preco={p.preco}
+                                  imagemUrl={p.Imagems_produto_URL}
+                                  quantidade={p.estoque}
+                                  disponivel={true}
+                                  lojaURL={p.Loja?.sticker_url ?? ""}
                                 />
-
-                                <p className="mt-2 font-bold">{p.nome}</p>
-
-                                <p className="font-bold text-[#982829] mt-1">
-                                    R$ {Number(p.preco).toFixed(2)}
-                                </p>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-        </>
-    );
-}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                }
