@@ -18,39 +18,29 @@ type ProdutoParacard = {
   Loja: {
     sticker_url: string;
   };
-
   avaliacoes?: any[];
 };
 
 export default function FeedPage() {
   const [produtos, setProdutos] = useState<ProdutoParacard[]>([]);
-  const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>(
-    []
-  );
+  const [produtosOriginais, setProdutosOriginais] = useState<ProdutoParacard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivoId, setFiltroAtivoId] = useState(0);
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
 
-  //BArra de filtros
+  // --- FILTROS ---
   const [precoMaximo, setPrecoMaximo] = useState(1000);
-  const [ratingSort, setRatingSort] = useState<"Nenhum" | "Melhor" | "Pior">(
-    "Nenhum"
-  );
-  const [sortType, setSortType] = useState<
-    "Nenhum" | "Mais Recente" | "Mais Antiga"
-  >("Nenhum");
+  const [ratingSort, setRatingSort] = useState<"Nenhum" | "Melhor" | "Pior">("Nenhum");
+  const [sortType, setSortType] = useState<"Nenhum" | "Mais Recente" | "Mais Antiga">("Nenhum");
+
   const [pendentePreco, setPendentePreco] = useState(1000);
-  const [pendenteRating, setPendenteRating] = useState<
-    "Nenhum" | "Melhor" | "Pior"
-  >("Nenhum");
-  const [pendenteSort, setPendenteSort] = useState<
-    "Nenhum" | "Mais Recente" | "Mais Antiga"
-  >("Nenhum");
+  const [pendenteRating, setPendenteRating] = useState<"Nenhum" | "Melhor" | "Pior">("Nenhum");
+  const [pendenteSort, setPendenteSort] = useState<"Nenhum" | "Mais Recente" | "Mais Antiga">("Nenhum");
+
   const [precoMaximoReal, setPrecoMaximoReal] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  //Aplicação de filtro
   const aplicarFiltros = () => {
     setPrecoMaximo(pendentePreco);
     setRatingSort(pendenteRating);
@@ -59,47 +49,35 @@ export default function FeedPage() {
 
   useEffect(() => {
     let list = [...produtosOriginais];
+
     if (filtroAtivoId !== 0) {
-      list = list.filter(
-        (p) => Number(p.categoria_id) === Number(filtroAtivoId)
-      );
+      list = list.filter((p) => Number(p.categoria_id) === Number(filtroAtivoId));
     }
 
-    // 2. Aplicar filtro de Busca (se ativo, se a BarraPesquisa n estiver fazendo isso)
-    // Se a BarraPesquisa estiver fazendo isso, podemos pular este passo aqui
-    // Se precisar da busca aqui, você precisará gerenciar `searchTerm` nesta página.
-
-    // 3. Aplicar Filtro de Preço
+    // Filtro de preço
     list = list.filter((p) => p.preco <= precoMaximo);
 
-    // 4. Aplicar Ordenação por Avaliação
+    // Ordenação por avaliação
     if (ratingSort === "Melhor") {
       list.sort((a, b) => calcularNota(b) - calcularNota(a));
     } else if (ratingSort === "Pior") {
       list.sort((a, b) => calcularNota(a) - calcularNota(b));
     }
 
-    // 5. Aplicar Ordenação por Adição
+    // Ordenação por data
     if (sortType === "Mais Recente") {
       list.sort((a, b) => b.id - a.id);
     } else if (sortType === "Mais Antiga") {
       list.sort((a, b) => a.id - b.id);
     }
 
-    setProdutos(list); // Atualiza a lista final que é renderizada
-    setCurrentPage(1); // Opcional: Voltar para a página 1 ao aplicar filtros
-  }, [
-    precoMaximo,
-    ratingSort,
-    sortType,
-    filtroAtivoId,
-    produtosOriginais,
-    // Se a BarraPesquisa não atualizar `produtos` diretamente, adicione `searchTerm` aqui
-  ]);
+    setProdutos(list);
+    setCurrentPage(1);
+
+  }, [precoMaximo, ratingSort, sortType, filtroAtivoId, produtosOriginais]);
 
   const calcularNota = (p: ProdutoParacard) => {
-    if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0)
-      return p.estoque;
+    if (!Array.isArray(p.avaliacoes) || p.avaliacoes.length === 0) return p.estoque;
 
     const notas = p.avaliacoes
       .map((a: any) => a?.nota ?? a?.rating ?? a?.avaliacao ?? null)
@@ -109,11 +87,11 @@ export default function FeedPage() {
     return notas.reduce((s: number, n: number) => s + n, 0) / notas.length;
   };
 
+  // Carregar produtos
   useEffect(() => {
     api
       .get("/produto/categoria_pai/27")
       .then((res) => {
-        console.log("Produtos recebidos:", res.data);
         setProdutosOriginais(res.data);
         setProdutos(res.data);
       })
@@ -124,13 +102,9 @@ export default function FeedPage() {
   const filtrarCategoria = (subId: number) => {
     setFiltroAtivoId(subId);
 
-    console.log("Filtrando categoria:", subId);
-
     const filtrados = produtosOriginais.filter(
       (p) => subId === 0 || Number(p.categoria_id) === Number(subId)
     );
-
-    console.log("Filtrados:", filtrados);
 
     setProdutos(filtrados);
   };
@@ -138,51 +112,57 @@ export default function FeedPage() {
   return (
     <>
       <Navbar />
+
+      {/* BANNER */}
       <div className="flex justify-center items-center h-65 bg-[#000000] text-white">
-        <div className=" text-white">
-          <h1 className="text-4xl leading-snug pl-20 pt-15 ">
-            O UNIVERSO da <strong className="font-bold">moda</strong>,
-          </h1>
-          <h1 className="text-4xl leading-snug pl-50 pb-10">em um só lugar!</h1>
+        <div>
+          <h1 className="text-4xl pl-20 pt-15">O UNIVERSO da <strong className="font-bold">moda</strong>,</h1>
+          <h1 className="text-4xl pl-50 pb-10">em um só lugar!</h1>
         </div>
-        <div className=" h-full relative ml-8">
+
+        <div className="h-full ml-8">
           <img
             src="/images/Mascote1.png"
             alt="Mascote"
-            className=" w-140 h-140 object-contain pr-20"
+            className="w-140 h-140 object-contain pr-20"
           />
         </div>
       </div>
 
-      <div className="relative z-10 bg-[#F6F3E4] h-full h-min-200 pl-10 pt-10">
+      {/* CONTEÚDO */}
+      <div className="relative z-10 bg-[#F6F3E4] min-h-200 pl-10 pt-10">
+
+        {/* BARRA DE PESQUISA + FILTROS */}
         <div className="flex items-center justify-end pr-5 pb-5">
           <div className="flex flex-col">
+
             <BarraPesquisa
               dadosOriginais={produtosOriginais}
               setDadosFiltrados={setProdutos}
               chave="nome"
               placeholder="Buscar produtos..."
             />
-            {/*AQUI OH COMEÇA*/}
-            <div className="relative  w-130  pb-5 pt-5 ">
+
+            {/* FILTROS */}
+            <div className="relative w-130 pb-5 pt-5">
+
               <button
                 className="flex justify-between items-center w-full bg-white p-4 rounded-xl shadow-md border border-gray-200 text-base font-semibold text-[#982829]"
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
               >
                 Filtros
                 <FaAngleDown
-                  className={`transition-transform duration-300 ${
-                    isFilterOpen ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
               {isFilterOpen && (
                 <div className="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg rounded-xl p-4 mt-2 z-50 space-y-3">
+
+                  {/* Preço */}
                   <div>
                     <label className="block text-sm font-semibold text-[#982829] mb-1">
-                      Preço Máximo:{" "}
-                      <span className="text-black">R$ {pendentePreco}</span>
+                      Preço Máximo: <span className="text-black">R$ {pendentePreco}</span>
                     </label>
                     <input
                       type="range"
@@ -195,6 +175,7 @@ export default function FeedPage() {
                     />
                   </div>
 
+                  {/* Avaliação */}
                   <div>
                     <label className="block text-sm font-semibold text-[#982829] mb-1">
                       Avaliação
@@ -210,6 +191,7 @@ export default function FeedPage() {
                     </select>
                   </div>
 
+                  {/* Ordenação */}
                   <div>
                     <label className="block text-sm font-semibold text-[#982829] mb-1">
                       Ordenar por Adição
@@ -225,6 +207,7 @@ export default function FeedPage() {
                     </select>
                   </div>
 
+                  {/* Aplicar */}
                   <button
                     className="w-full bg-[#982829] text-white font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
                     onClick={() => {
@@ -235,6 +218,7 @@ export default function FeedPage() {
                     Aplicar Filtros
                   </button>
 
+                  {/* Limpar */}
                   <button
                     className="w-full bg-gray-300 text-black font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
                     onClick={() => {
@@ -252,110 +236,62 @@ export default function FeedPage() {
                   >
                     Limpar Filtros
                   </button>
-                </div>
-                <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
-                    <button onClick={() => filtrarCategoria(0)}
-                        className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 0 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Todos
-                    </button>
-
-                    <button onClick={() => filtrarCategoria(29)}
-                        className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 29 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Blusa
-                    </button>
-
-                    <button onClick={() => filtrarCategoria(30)}
-                        className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 30 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Calça
-                    </button>
-
-                    <button onClick={() => filtrarCategoria(31)}
-                        className={`h-10 w-23 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 31 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Sapatos
-                    </button>
-                    <button onClick={() => filtrarCategoria(28)}
-                        className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 28 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Vestidos
-                    </button>
-
-                    <button onClick={() => filtrarCategoria(9)}
-                        className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 32 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
-                        Outros
-                    </button>
 
                 </div>
+              )}
 
-
-            {/*AQUI OH ACABA*/}
+            </div>
           </div>
         </div>
+
+        {/* CATEGORIAS (A QUE DEVE APARECER SEMPRE) */}
         <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
+
           <button
             onClick={() => filtrarCategoria(0)}
-            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 0
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-15 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 0 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Todos
           </button>
 
           <button
             onClick={() => filtrarCategoria(29)}
-            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 29
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-15 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 29 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Blusa
           </button>
 
           <button
             onClick={() => filtrarCategoria(30)}
-            className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 30
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-15 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 30 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Calça
           </button>
 
           <button
             onClick={() => filtrarCategoria(31)}
-            className={`h-10 w-23 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 31
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-23 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 31 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Sapatos
           </button>
+
           <button
             onClick={() => filtrarCategoria(28)}
-            className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 28
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-24 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 28 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Vestidos
           </button>
 
           <button
             onClick={() => filtrarCategoria(32)}
-            className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${
-              filtroAtivoId === 32
-                ? "bg-[#982829] text-white font-bold  "
-                : "text-[#982829] bg-white"
-            }`}
+            className={`h-10 w-20 rounded-2xl hover:scale-105 px-10 flex items-center justify-center ${filtroAtivoId === 32 ? "bg-[#982829] text-white font-bold" : "text-[#982829] bg-white"}`}
           >
             Outros
           </button>
+
         </div>
 
+        {/* LISTA DE PRODUTOS */}
         <div className="grid grid-cols-4 gap-6 mt-10">
           {loading ? (
             <p>Carregando...</p>
@@ -381,6 +317,7 @@ export default function FeedPage() {
             ))
           )}
         </div>
+
       </div>
     </>
   );
