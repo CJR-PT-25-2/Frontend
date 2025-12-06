@@ -181,13 +181,14 @@ export default function CadastroPage() {
       </div>
 
       {/* Lado direito */}
-      <div className="flex flex-col justify-center items-center w-[40%] pt-20 overflow-hidden">
+      <div className="flex flex-col justify-center items-center w-[40%] pt-20 overflow-hidden " >
       <Image
         src="/images/LOGO.png"
         alt="Logo da Empresa"
         width={400}
         height={180}
-        className="mb-8 object-contain"
+        className="mb-8 object-contain cursor-pointer hover:scale-105"
+        onClick={() => router.push('/')}
       />
 
       <div className="flex items-center justify-center w-full h-full">

@@ -196,65 +196,172 @@ export default function FeedPage() {
                       onChange={(e) => setPendentePreco(Number(e.target.value))}
                       className="w-full accent-[#982829]"
                     />
-                  </div>
+                     {/*AQUI OH COMEÇA*/}
+                                    <div className="relative  w-130  pb-5 pt-5 ">
+                                    
+                                                <button
+                                                  className="flex justify-between items-center w-full bg-white p-4 rounded-xl shadow-md border border-gray-200 text-base font-semibold text-[#982829]"
+                                                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                                >
+                                                  Filtros
+                                                  <FaAngleDown
+                                                    className={`transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""
+                                                      }`}
+                                                  />
+                                                </button>
+                                    
+                                                {isFilterOpen && (
+                                                  <div className="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg rounded-xl p-4 mt-2 z-50 space-y-3">
+                                    
+                                                    <div>
+                                                      <label className="block text-sm font-semibold text-[#982829] mb-1">
+                                                        Preço Máximo:{" "}
+                                                        <span className="text-black">R$ {pendentePreco}</span>
+                                                      </label>
+                                                      <input
+                                                        type="range"
+                                                        min={0}
+                                                        max={precoMaximoReal}
+                                                        step={1}
+                                                        value={pendentePreco}
+                                                        onChange={(e) =>
+                                                          setPendentePreco(Number(e.target.value))
+                                                        }
+                                                        className="w-full accent-[#982829]"
+                                                      />
+                                                    </div>
+                                    
+                                                    <div>
+                                                      <label className="block text-sm font-semibold text-[#982829] mb-1">
+                                                        Avaliação
+                                                      </label>
+                                                      <select
+                                                        value={pendenteRating}
+                                                        onChange={(e) =>
+                                                          setPendenteRating(e.target.value as any)
+                                                        }
+                                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                                      >
+                                                        <option value="Nenhum">Padrão</option>
+                                                        <option value="Melhor">Melhor Avaliados</option>
+                                                        <option value="Pior">Pior Avaliados</option>
+                                                      </select>
+                                                    </div>
+                                    
+                                                    <div>
+                                                      <label className="block text-sm font-semibold text-[#982829] mb-1">
+                                                        Ordenar por Adição
+                                                      </label>
+                                                      <select
+                                                        value={pendenteSort}
+                                                        onChange={(e) =>
+                                                          setPendenteSort(e.target.value as any)
+                                                        }
+                                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                                      >
+                                                        <option value="Nenhum">Padrão</option>
+                                                        <option value="Mais Recente">Mais Recente</option>
+                                                        <option value="Mais Antiga">Mais Antiga</option>
+                                                      </select>
+                                                    </div>
+                                    
+                                                    <button
+                                                      className="w-full bg-[#982829] text-white font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
+                                                      onClick={() => {
+                                                        aplicarFiltros();
+                                                        setIsFilterOpen(false);
+                                                      }}
+                                                    >
+                                                      Aplicar Filtros
+                                                    </button>
+                                    
+                                                    <button
+                                                      className="w-full bg-gray-300 text-black font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
+                                                      onClick={() => {
+                                                        setPendentePreco(precoMaximoReal);
+                                                        setPendenteRating("Nenhum");
+                                                        setPendenteSort("Nenhum");
+                                    
+                                                        setPrecoMaximo(precoMaximoReal);
+                                                        setRatingSort("Nenhum");
+                                                        setSortType("Nenhum");
+                                    
+                                                        setCurrentPage(1);
+                                                        setIsFilterOpen(false);
+                                                      }}
+                                                    >
+                                                      Limpar Filtros
+                                                    </button>
+                                                  </div>
+                                                )}
+                                    </div>
+                                            
+                                    
+                                              {/*AQUI OH ACABA*/}
+                    </div>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-[#982829] mb-1">
-                      Avaliação
-                    </label>
-                    <select
-                      value={pendenteRating}
-                      onChange={(e) => setPendenteRating(e.target.value as any)}
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black"
-                    >
-                      <option value="Nenhum">Padrão</option>
-                      <option value="Melhor">Melhor Avaliados</option>
-                      <option value="Pior">Pior Avaliados</option>
-                    </select>
-                  </div>
+                <div className="flex space-x-8 items-center overflow-x-auto whitespace-nowrap">
+                    <button
+                        onClick={() => filtrarCategoria(0)}
+                        className={`h-10 w-15 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 0 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Todos
+                    </button>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-[#982829] mb-1">
-                      Ordenar por Adição
-                    </label>
-                    <select
-                      value={pendenteSort}
-                      onChange={(e) => setPendenteSort(e.target.value as any)}
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm text-black"
-                    >
-                      <option value="Nenhum">Padrão</option>
-                      <option value="Mais Recente">Mais Recente</option>
-                      <option value="Mais Antiga">Mais Antiga</option>
-                    </select>
-                  </div>
+                    <button
+                        onClick={() => filtrarCategoria(37)}
+                        className={`h-10 w-25 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 37 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Banheiro
+                    </button>
 
-                  <button
-                    className="w-full bg-[#982829] text-white font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
-                    onClick={() => {
-                      aplicarFiltros();
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    Aplicar Filtros
-                  </button>
+                    <button
+                        onClick={() => filtrarCategoria(34)}
+                        className={`h-10 w-24 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 34 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Cozinha
+                    </button>
 
-                  <button
-                    className="w-full bg-gray-300 text-black font-semibold py-1.5 px-3 rounded-lg hover:scale-105 transition text-sm"
-                    onClick={() => {
-                      setPendentePreco(precoMaximoReal);
-                      setPendenteRating("Nenhum");
-                      setPendenteSort("Nenhum");
+                    <button
+                        onClick={() => filtrarCategoria(36)}
+                        className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 36 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Quarto
+                    </button>
 
-                      setPrecoMaximo(precoMaximoReal);
-                      setRatingSort("Nenhum");
-                      setSortType("Nenhum");
+                    <button
+                        onClick={() => filtrarCategoria(35)}
+                        className={`h-10 w-8 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 35 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Sala
+                    </button>
+                    <button
+                        onClick={() => filtrarCategoria(9)}
+                        className={`h-10 w-20 rounded-2xl hover:scale-105 cursor-pointer px-10 flex items-center justify-center ${filtroAtivoId === 38 ? 'bg-[#982829] text-white font-bold  ' : 'text-[#982829] bg-white'}`}>
+                        Outros
+                    </button>
 
-                      setCurrentPage(1);
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    Limpar Filtros
-                  </button>
+                </div>
+
+
+                <div className="grid grid-cols-4 gap-6 mt-10">
+                    {loading ? (
+                        <p>Carregando...</p>
+                    ) : produtos.length === 0 ? (
+                        <p>Nenhum produto encontrado.</p>
+                    ) : (
+                        produtos.map((p) => (
+                            <div
+                                key={p.id} className="cursor-pointer" onClick={() => router.push(`/produto/${p.id}`)}
+                            >
+                                <Caixa_prod
+                                    id={p.id}
+                                    nome={p.nome}
+                                    preco={p.preco}
+                                    imagemUrl={p.Imagems_produto_URL}
+                                    quantidade={p.estoque}
+                                    disponivel={true}
+                                    lojaURL={p.Loja?.sticker_url ?? ""}
+                                />
+                            </div>
+                        ))
+                    )}
                 </div>
               )}
             </div>
