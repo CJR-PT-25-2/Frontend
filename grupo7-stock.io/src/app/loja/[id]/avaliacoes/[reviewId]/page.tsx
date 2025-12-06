@@ -75,13 +75,34 @@ export default function ReviewDetailPage() {
     fetchReview();
   }, [reviewId]);
 
-  const getAvatarUrl = (usuario: Usuario | undefined | null) => {
-    if (usuario?.foto_perfil_URL) return usuario.foto_perfil_URL;
-    const name = usuario?.name || "U";
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      name
-    )}&background=333&color=fff&size=150&font-size=0.5`;
-  };
+  
+const BASE_API_URL = 'http://localhost:3001'; 
+
+interface Usuario {
+  foto_perfil_URL?: string | null;
+  name?: string | null;
+}
+
+const getAvatarUrl = (usuario: Usuario | undefined | null) => {
+  if (usuario?.foto_perfil_URL) {
+    const url = usuario.foto_perfil_URL;
+    
+    
+    if (url.startsWith('/')) {
+      
+      return `${BASE_API_URL}${url}`;
+    }
+    
+    
+    return url;
+  }
+  
+  
+  const name = usuario?.name || "U";
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    name
+  )}&background=333&color=fff&size=150&font-size=0.5`;
+};
 
   const handleSendComment = async () => {
     if (!newComment.trim() || !user || !review) return;
